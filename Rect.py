@@ -14,8 +14,6 @@ from sys import platform
 ### todo move that away
 
 
-
-
 class Rectangular_object():
     _corners = None
 
@@ -31,17 +29,7 @@ class Rectangular_object():
         self.GUI.drawables.append(self)
 
     def removefromGUI(self):
-        print("Remove",self)
         self.GUI.drawables.remove(self)
-
-    #def __del__(self):
-    #    if self in self.GUI.drawables:
-    #        print("Delete", self.__class__.__name__, "from drawables")
-    #        ###todo I am unsure about this
-    #        self.GUI.drawables.remove(self)
-    #    else:
-    #        print("Couldnt remove ", self)
-
 
     def draw(self):
         if not self.visible:
@@ -81,19 +69,18 @@ class Plot_object(Rectangular_object):
 
     def __init__(self, GUI, pos, size, **kwargs):
         ###todo update size
-        super(Plot_object, self).__init__(GUI,pos,size,**kwargs)
+        super(Plot_object, self).__init__(GUI, pos, size, **kwargs)
         self.setup()
 
     def setup(self):
         self.fig, self.ax = plt.subplots()
 
-    def plot(self, xdata = None, ydata=None,**kwargs):
+    def plot(self, xdata=None, ydata=None, **kwargs):
         self._surface = None
         if xdata is not None and ydata is not None:
-            self.ax.plot(xdata,ydata,**kwargs)
+            self.ax.plot(xdata, ydata, **kwargs)
         elif xdata is not None:
             self.ax.plot(xdata, **kwargs)
-
 
     @property
     def surface(self):
@@ -109,11 +96,12 @@ class Plot_object(Rectangular_object):
         renderer = canvas.get_renderer()
         raw_data = renderer.tostring_rgb()
         size = canvas.get_width_height()
-        self._surface = pygame.image.frombuffer(raw_data,size,"RGB")
+        self._surface = pygame.image.frombuffer(raw_data, size, "RGB")
         return self._surface
 
     def draw(self):
         self.screen.blit(self.surface, self.pos)
+
 
 class RectImage(Rectangular_object):
     def __init__(self, GUI, pos, image):
@@ -164,12 +152,6 @@ class Button(Rectangular_object):
         super().removefromGUI()
         self.GUI.clickables.remove(self)
 
-    #def __del__(self):
-    #    if self in self.GUI.buttons:   ###todo I am unsure about this
-    #        self.GUI.buttons.remove(self)
-    #    super(Button, self).__del__()
-
-
     def draw(self):
         super(Button, self).draw()
         pygame.draw.rect(self.screen, (200, 200, 200), (self.pos[0], self.pos[1], self.size[0], self.size[1]), 1)
@@ -183,3 +165,37 @@ class Button(Rectangular_object):
     def action(self):
         if self.command is not None:
             self.command()
+
+
+class Textfeld(Rectangular_object):
+    _text_surface = None
+    def __init__(self, GUI, pos, size, value):
+        super().__init__(GUI, pos, size)
+        self.value = value
+
+    def add2GUI(self):
+        super().add2GUI()
+        self.GUI.updateables.append(self)
+
+    def removefromGUI(self):
+        super().removefromGUI()
+        self.GUI.updateables.remove(self)
+
+    def draw(self):
+        pygame.draw.rect(self.screen, (150, 150, 150), (self.pos[0], self.pos[1], self.size[0], self.size[1]), 0)
+        pygame.draw.rect(self.screen, (200, 200, 200), (self.pos[0], self.pos[1], self.size[0], self.size[1]), 1)
+        self.screen.blit(self.text_surface, (
+        self.pos[0] + self.size[0] / 2 - len(self.text) * 4.5, self.pos[1] + self.size[1] / 2 - 12))
+
+    @property
+    def text_surface(self):
+        if self._text_surface is not None:
+            return self._text_surface
+        wert = getattr(self.GUI, self.value)
+        if isinstance(wert, float):
+            wert = "{0:.3f}".format(wert)
+        self.text = str(wert)
+        self._text_surface = self.GUI.myfont.render(self.text, False, (0, 0, 0))
+        return self._text_surface
+    def update(self):
+        self._text_surface = None

@@ -3,8 +3,9 @@ from GUI import myGUI
 
 
 class Slide():
+    drawables = []
+    clickables = []
     def __init__(self, parent):
-        print("Create", self.__class__.__name__)
         self.content = []  # pictures, plots... seen on the Slide
         self.actions = []  # actions taken on clicks
         self.parent = parent
@@ -25,7 +26,6 @@ class Slide():
         return False
 
     def removefromGUI(self):
-        print("Call remove from GUI in",self.__class__.__name__)
         for cont in self.content:
             cont.removefromGUI()
 
@@ -34,6 +34,7 @@ class S1(Slide):
     def manual_init(self):
         self.content.append(Rectangular_object(self.parent, (100, 100), (50, 50)))
         self.content.append(Rectangular_object(self.parent, (100, 200), (50, 50)))
+        self.content.append(Button(self.parent, (260,100), (50,50), "Hallo",command=lambda:print("Miaz")))
         # P =Plot_object(self.parent,(0,00),(300,300))
 
     def set_indices(self, indices):

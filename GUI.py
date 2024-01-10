@@ -1,14 +1,20 @@
 from Rect import *
 from time import time
 import pygame.locals
+
+
+def add(obj, var, val):
+    setattr(obj, var, getattr(obj, var) + val)
+
+
 class myGUI():
     timestamp = 0
     pos = None
     running = True
-    left_click = right_click = False
-    update = True
     drawables = []
     clickables = []
+    updateables = []
+    rand = 0.3
 
     def __init__(self):
         pygame.init()
@@ -33,13 +39,18 @@ class myGUI():
         for obj in self.drawables:
             obj.draw()
 
+    def update(self):
+        for obj in self.updateables:
+            obj.update()
+
     def setup_plots(self):
         pass
 
     def setup_buttons(self):
         for i in range(5):
             Button(self, (100, 100 + 50 * i), (50, 50), "Test", command=lambda x=i: print(f"Hallo {x}"))
-        # self.buttons.append(RectImageSeries(self, (200, 200), [f"state{i}.png" for i in range(9)]))
+        Textfeld(self, (400, 100), (100, 100), "rand")
+        Button(self, (400, 200), (50, 50), "+", command=lambda: add(self, "rand", 0.1))
 
     def run(self):
         while self.mainloop():
@@ -53,7 +64,6 @@ class myGUI():
 
     def mainloop(self):
         if time() - self.timer > 1 / 10:
-            self.update = True
             self.timer = time()
 
         for event in pygame.event.get():
@@ -68,16 +78,17 @@ class myGUI():
             elif event.type == pygame.MOUSEBUTTONUP:
                 pass
 
-        if self.update and time() - self.timestamp > 0.2:
+        if time() - self.timestamp > 0.2:
             self.screen.fill((0, 0, 0))
             self.draw()
+            self.update()
             pygame.display.flip()
-            self.update = False
         return True
 
 
 def main():
     myGUI().run()
+
 
 if __name__ == '__main__':
     main()
