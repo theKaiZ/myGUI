@@ -8,13 +8,13 @@ class myGUI():
     left_click = right_click = False
     update = True
     drawables = []
+    clickables = []
 
     def __init__(self):
         pygame.init()
         window = pygame.display.set_mode((960, 720), pygame.locals.DOUBLEBUF)
         self.myfont = pygame.font.SysFont("Comic Sans MS", 15 if 'win' in platform else 15)
         self.screen = pygame.display.get_surface()
-        self.buttons = []
         self.plots = []
         self.setup_buttons()
         self.setup_plots()
@@ -26,8 +26,8 @@ class myGUI():
         pass
 
     def click(self):
-        for button in self.buttons:
-            button.click()
+        for obj in self.clickables:
+            obj.click()
 
     def draw(self):
         for obj in self.drawables:
@@ -37,10 +37,8 @@ class myGUI():
         pass
 
     def setup_buttons(self):
-        self.buttons = []
         for i in range(5):
-            self.buttons.append(
-                Button(self, (100, 100 + 50 * i), (50, 50), "Test", command=lambda x=i: print(f"Hallo {x}")))
+            Button(self, (100, 100 + 50 * i), (50, 50), "Test", command=lambda x=i: print(f"Hallo {x}"))
         # self.buttons.append(RectImageSeries(self, (200, 200), [f"state{i}.png" for i in range(9)]))
 
     def run(self):
@@ -77,3 +75,9 @@ class myGUI():
             self.update = False
         return True
 
+
+def main():
+    myGUI().run()
+
+if __name__ == '__main__':
+    main()

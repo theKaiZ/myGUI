@@ -7,7 +7,6 @@ class Slide():
         print("Create", self.__class__.__name__)
         self.content = []  # pictures, plots... seen on the Slide
         self.actions = []  # actions taken on clicks
-        self.n_action = 0
         self.parent = parent
         parent.active_slide = self
         self.manual_init()
@@ -25,10 +24,10 @@ class Slide():
             return True
         return False
 
-    def __del__(self):
-        print("\nDelete", self.__class__.__name__, self.content)
-        while len(self.content):
-            self.content.pop().__del__()
+    def removefromGUI(self):
+        print("Call remove from GUI in",self.__class__.__name__)
+        for cont in self.content:
+            cont.removefromGUI()
 
 
 class S1(Slide):
@@ -67,15 +66,17 @@ class Presenter(myGUI):
 
     @property
     def next(self):
-        if self.active_slide is None:
+        if self.active_slide is None: ###load new slide
             self.active_slide = self.slides[self.num_slide]()
             self.num_slide += 1
             if self.num_slide > len(self.slides) - 1:
                 self.num_slide = 0
             return
-        if not self.active_slide.next:
-            del self.active_slide
-            self.next
+        if self.active_slide.next:
+            return
+        self.active_slide.removefromGUI()
+        self.active_slide = None
+        self.next
 
 
 if __name__ == "__main__":

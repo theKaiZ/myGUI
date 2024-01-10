@@ -20,20 +20,27 @@ class Rectangular_object():
     _corners = None
 
     def __init__(self, GUI, pos, size, **kwargs):
-        GUI.drawables.append(self)
         self.GUI = GUI
+        self.add2GUI()
         self.screen = GUI.screen
         self.pos = np.array(pos)
         self.size = np.array(size)
         self.visible = True if kwargs.get("visible") is None else kwargs.get("visible")
 
-    def __del__(self):
-        if self in self.GUI.drawables:
-            print("Delete", self.__class__.__name__, "from drawables")
-            ###todo I am unsure about this
-            self.GUI.drawables.remove(self)
-        else:
-            print("Couldnt remove ", self)
+    def add2GUI(self):
+        self.GUI.drawables.append(self)
+
+    def removefromGUI(self):
+        print("Remove",self)
+        self.GUI.drawables.remove(self)
+
+    #def __del__(self):
+    #    if self in self.GUI.drawables:
+    #        print("Delete", self.__class__.__name__, "from drawables")
+    #        ###todo I am unsure about this
+    #        self.GUI.drawables.remove(self)
+    #    else:
+    #        print("Couldnt remove ", self)
 
 
     def draw(self):
@@ -145,15 +152,22 @@ class Button(Rectangular_object):
 
     def __init__(self, GUI, pos, size, text, **kwargs):
         super(Button, self).__init__(GUI, pos, size, **kwargs)
-        GUI.buttons.append(self)
         self.text = text
         self.text_surface = GUI.myfont.render(text, False, (0, 0, 0))
         self.command = kwargs.get("command")
 
-    def __del__(self):
-        if self in self.GUI.buttons:   ###todo I am unsure about this
-            self.GUI.buttons.remove(self)
-        super(Button, self).__del__()
+    def add2GUI(self):
+        super().add2GUI()
+        self.GUI.clickables.append(self)
+
+    def removefromGUI(self):
+        super().removefromGUI()
+        self.GUI.clickables.remove(self)
+
+    #def __del__(self):
+    #    if self in self.GUI.buttons:   ###todo I am unsure about this
+    #        self.GUI.buttons.remove(self)
+    #    super(Button, self).__del__()
 
 
     def draw(self):
