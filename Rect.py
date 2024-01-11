@@ -100,6 +100,8 @@ class Plot_object(Rectangular_object):
         return self._surface
 
     def draw(self):
+        if not self.visible:
+            return
         self.screen.blit(self.surface, self.pos)
 
 
@@ -128,6 +130,8 @@ class RectImageSeries(Rectangular_object):
         super(RectImageSeries, self).__init__(GUI, pos, size)
 
     def draw(self):
+        if not self.visible:
+            return
         if self.mouseover:
             self.index += 1
             if self.index >= len(self.images):
@@ -153,6 +157,8 @@ class Button(Rectangular_object):
         self.GUI.clickables.remove(self)
 
     def draw(self):
+        if not self.visible:
+            return
         super(Button, self).draw()
         pygame.draw.rect(self.screen, (200, 200, 200), (self.pos[0], self.pos[1], self.size[0], self.size[1]), 1)
         self.screen.blit(self.text_surface, (
@@ -182,6 +188,8 @@ class Textfeld(Rectangular_object):
         self.GUI.updateables.remove(self)
 
     def draw(self):
+        if not self.visible:
+            return
         pygame.draw.rect(self.screen, (150, 150, 150), (self.pos[0], self.pos[1], self.size[0], self.size[1]), 0)
         pygame.draw.rect(self.screen, (200, 200, 200), (self.pos[0], self.pos[1], self.size[0], self.size[1]), 1)
         self.screen.blit(self.text_surface, (
