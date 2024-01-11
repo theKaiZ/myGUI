@@ -32,8 +32,8 @@ class Slide():
 
 class S1(Slide):
     def manual_init(self):
-        self.content.append(Rectangular_object(self.parent, (100, 100), (50, 50)))
-        self.content.append(Rectangular_object(self.parent, (100, 200), (50, 50)))
+        self.content.append(Rectangular_object(self.parent, pos=(100, 100), size=(50, 50)))
+        self.content.append(Rectangular_object(self.parent, pos=(100, 200), size=(50, 50)))
         self.content.append(Button(self.parent, (260,100), (50,50), "Hallo",command=lambda:print("Miaz")))
         # P =Plot_object(self.parent,(0,00),(300,300))
 
@@ -43,14 +43,14 @@ class S1(Slide):
 
 class S2(Slide):
     def manual_init(self):
-        self.content.append(Rectangular_object(self.parent, (300, 100), (50, 50)))
-        self.content.append(Rectangular_object(self.parent, (300, 200), (50, 50)))
+        self.content.append(Rectangular_object(self.parent, pos= (300, 100), size= (50, 50)))
+        self.content.append(Rectangular_object(self.parent, pos=(300, 200), size=(50, 50)))
 
 
 class S3(Slide):
     def manual_init(self):
-        self.content.append(Rectangular_object(self.parent, (350, 100), (50, 50)))
-        self.content.append(Rectangular_object(self.parent, (350, 200), (50, 50)))
+        self.content.append(Rectangular_object(self.parent, pos=(350, 100), size=(50, 50)))
+        self.content.append(Rectangular_object(self.parent, pos=(350, 200), size=(50, 50)))
 
 
 class Presenter(myGUI):

@@ -16,14 +16,34 @@ from sys import platform
 
 class Rectangular_object():
     _corners = None
-
-    def __init__(self, parent, pos, size, **kwargs):
+    _pos = None
+    _size = None
+    def __init__(self, parent, **kwargs):
         self.parent = parent
         self.add2GUI()
-        self.pos = np.array(pos)
-        self.size = np.array(size)
+        self.pos = kwargs.get("pos")
+        self.size = kwargs.get("size")
         self.visible = True if kwargs.get("visible") is None else kwargs.get("visible")
 
+    @property
+    def pos(self):
+        return self._pos
+    @pos.setter
+    def pos(self,value):
+        if value is None:
+            self._pos = self.parent.pos
+        else:
+            self._pos = np.array(value)
+
+    @property
+    def size(self):
+        return self._size
+
+    @size.setter
+    def size(self, value):
+        if value is None:
+            self._size = self.parent.size
+        self._size = np.array(value)
     @property
     def screen(self):
         return self.parent.screen
@@ -146,7 +166,7 @@ class Button(Rectangular_object):
     active = False
 
     def __init__(self, parent, pos, size, text, **kwargs):
-        super(Button, self).__init__(parent, pos, size, **kwargs)
+        super(Button, self).__init__(parent, pos=pos, size=size, **kwargs)
         self.text = text
         self.text_surface = parent.myfont.render(text, False, (0, 0, 0))
         self.command = kwargs.get("command")
