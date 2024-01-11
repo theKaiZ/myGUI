@@ -42,7 +42,6 @@ class myGUI():
             obj.draw()
 
     def update(self):
-        print(self.keyboard)
         for obj in self.updateables:
             obj.update()
 
@@ -70,15 +69,14 @@ class myGUI():
             self.timer = time()
 
         for event in pygame.event.get():
-            print(event)
-
             self.event = event
             if event.type == pygame.QUIT:
                 return False
             if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    return False
                 self.keyboard[event.key] = True
-                #if event.key == pygame.K_ESCAPE:
-                #    return False
+
             elif event.type == pygame.KEYUP:
                 self.keyboard[event.key] = False
             elif event.type == pygame.MOUSEBUTTONDOWN:

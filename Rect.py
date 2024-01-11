@@ -17,19 +17,22 @@ from sys import platform
 class Rectangular_object():
     _corners = None
 
-    def __init__(self, GUI, pos, size, **kwargs):
-        self.GUI = GUI
+    def __init__(self, parent, pos, size, **kwargs):
+        self.parent = parent
         self.add2GUI()
-        self.screen = GUI.screen
         self.pos = np.array(pos)
         self.size = np.array(size)
         self.visible = True if kwargs.get("visible") is None else kwargs.get("visible")
 
+    @property
+    def screen(self):
+        return self.parent.screen
+
     def add2GUI(self):
-        self.GUI.drawables.append(self)
+        self.parent.drawables.append(self)
 
     def removefromGUI(self):
-        self.GUI.drawables.remove(self)
+        self.parent.drawables.remove(self)
 
     def draw(self):
         if not self.visible:
@@ -49,7 +52,7 @@ class Rectangular_object():
 
     @property
     def mouseover(self):
-        mouse = self.GUI.mouse_pos
+        mouse = self.parent.mouse_pos
         corn = self.corners
         if mouse[0] < corn[0, 0]:
             return False
@@ -67,9 +70,9 @@ class Plot_object(Rectangular_object):
     fig = None
     ax = None
 
-    def __init__(self, GUI, pos, size, **kwargs):
+    def __init__(self, parent, pos, size, **kwargs):
         ###todo update size
-        super(Plot_object, self).__init__(GUI, pos, size, **kwargs)
+        super(Plot_object, self).__init__(parent, pos, size, **kwargs)
         self.setup()
 
     def setup(self):
@@ -106,28 +109,28 @@ class Plot_object(Rectangular_object):
 
 
 class RectImage(Rectangular_object):
-    def __init__(self, GUI, pos, image):
+    def __init__(self, parent, pos, image):
         image = Image.open(image)
         size = image.size
         mode = image.mode
         data = image.tobytes()
         self.image = pygame.image.frombuffer(data, size, mode)
-        super(RectImage, self).__init__(GUI, pos, size)
+        super(RectImage, self).__init__(parent, pos, size)
 
     def draw(self):
-        self.GUI.screen.blit(self.image, self.pos)
+        self.screen.blit(self.image, self.pos)
 
 
 class RectImageSeries(Rectangular_object):
     index = 0
 
-    def __init__(self, GUI, pos, images):
+    def __init__(self, parent, pos, images):
         images = [Image.open(image) for image in images]
         size = images[0].size
         mode = images[0].mode
         datasets = [image.tobytes() for image in images]
         self.images = [pygame.image.frombuffer(data, size, mode) for data in datasets]
-        super(RectImageSeries, self).__init__(GUI, pos, size)
+        super(RectImageSeries, self).__init__(parent, pos, size)
 
     def draw(self):
         if not self.visible:
@@ -136,25 +139,25 @@ class RectImageSeries(Rectangular_object):
             self.index += 1
             if self.index >= len(self.images):
                 self.index = 0
-        self.GUI.screen.blit(self.images[self.index], self.pos)
+        self.screen.blit(self.images[self.index], self.pos)
 
 
 class Button(Rectangular_object):
     active = False
 
-    def __init__(self, GUI, pos, size, text, **kwargs):
-        super(Button, self).__init__(GUI, pos, size, **kwargs)
+    def __init__(self, parent, pos, size, text, **kwargs):
+        super(Button, self).__init__(parent, pos, size, **kwargs)
         self.text = text
-        self.text_surface = GUI.myfont.render(text, False, (0, 0, 0))
+        self.text_surface = parent.myfont.render(text, False, (0, 0, 0))
         self.command = kwargs.get("command")
 
     def add2GUI(self):
         super().add2GUI()
-        self.GUI.clickables.append(self)
+        self.parent.clickables.append(self)
 
     def removefromGUI(self):
         super().removefromGUI()
-        self.GUI.clickables.remove(self)
+        self.parent.clickables.remove(self)
 
     def draw(self):
         if not self.visible:
@@ -175,17 +178,17 @@ class Button(Rectangular_object):
 
 class Textfeld(Rectangular_object):
     _text_surface = None
-    def __init__(self, GUI, pos, size, value):
-        super().__init__(GUI, pos, size)
+    def __init__(self, parent, pos, size, value):
+        super().__init__(parent, pos, size)
         self.value = value
 
     def add2GUI(self):
         super().add2GUI()
-        self.GUI.updateables.append(self)
+        self.parent.updateables.append(self)
 
     def removefromGUI(self):
         super().removefromGUI()
-        self.GUI.updateables.remove(self)
+        self.parent.updateables.remove(self)
 
     def draw(self):
         if not self.visible:
@@ -199,11 +202,11 @@ class Textfeld(Rectangular_object):
     def text_surface(self):
         if self._text_surface is not None:
             return self._text_surface
-        wert = getattr(self.GUI, self.value)
+        wert = getattr(self.parent, self.value)
         if isinstance(wert, float):
             wert = "{0:.3f}".format(wert)
         self.text = str(wert)
-        self._text_surface = self.GUI.myfont.render(self.text, False, (0, 0, 0))
+        self._text_surface = self.parent.myfont.render(self.text, False, (0, 0, 0))
         return self._text_surface
     def update(self):
         self._text_surface = None
