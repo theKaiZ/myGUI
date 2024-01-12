@@ -16,7 +16,7 @@ class myGUI():
     updateables = []
     rand = 0.3
     keyboard = {}
-
+    toggle_update = False
     def __init__(self):
         pygame.init()
         pygame.display.set_mode((960, 720), pygame.locals.DOUBLEBUF)
@@ -45,6 +45,7 @@ class myGUI():
     def update(self):
         for obj in self.updateables:
             obj.update()
+        self.toggle_update = False
 
     def setup_plots(self):
         pass
@@ -90,7 +91,8 @@ class myGUI():
         if time() - self.timestamp > 0.2:
             self.screen.fill((0, 0, 0))
             self.draw()
-            self.update()
+            if self.toggle_update:
+                self.update()
             pygame.display.flip()
         return True
 
