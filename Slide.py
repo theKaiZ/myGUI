@@ -1,5 +1,5 @@
-from Rect import Button, Rectangular_object
-from GUI import myGUI
+from myGUI.Rect import Button, Rectangular_object
+from myGUI.GUI import myGUI
 
 
 class Slide():

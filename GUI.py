@@ -1,4 +1,4 @@
-from Rect import *
+from myGUI.Rect import *
 from time import time
 import pygame.locals
 
@@ -19,7 +19,7 @@ class myGUI():
 
     def __init__(self):
         pygame.init()
-        window = pygame.display.set_mode((960, 720), pygame.locals.DOUBLEBUF)
+        pygame.display.set_mode((960, 720), pygame.locals.DOUBLEBUF)
         self.myfont = pygame.font.SysFont("Comic Sans MS", 15 if 'win' in platform else 15)
         self.screen = pygame.display.get_surface()
         self.plots = []
@@ -29,11 +29,12 @@ class myGUI():
         self.timer = time()
 
     def manual_init(self):
+        self.test1 = 1
+        self.test2 = 100
         ### only for inheritance
         pass
 
     def click(self):
-        print(self.event)
         for obj in self.clickables:
             obj.click()
 
@@ -53,7 +54,9 @@ class myGUI():
             Button(self, (100, 100 + 50 * i), (50, 50), "Test", command=lambda x=i: print(f"Hallo {x}"))
         Textfeld(self, (400, 100), (100, 100), "rand")
         Button(self, (400, 200), (50, 50), "+", command=lambda: add(self, "rand", 0.1))
-
+        ScrollTextfeld(self, (500,200), (50,50), "test1", 1, limits=[1,100],operator="+")
+        ScrollTextfeld(self, (500,250), (50,50), "test2", 1.1, limits=[1,100],operator="*")
+        Button(self, (500,500), (100,100), "print", command=lambda:self.print())
     def run(self):
         while self.mainloop():
             pass
@@ -91,6 +94,10 @@ class myGUI():
             pygame.display.flip()
         return True
 
+    def print(self):
+        print("Drawables",self.drawables)
+        print("Clickables",self.clickables)
+        print("Updatteables",self.updateables)
 
 def main():
     myGUI().run()
