@@ -30,6 +30,10 @@ class Rectangular_object():
     def pos(self):
         return self._pos
 
+    @property
+    def event(self):
+        return self.parent.event
+
     @pos.setter
     def pos(self, value):
         if value is None:
@@ -45,7 +49,8 @@ class Rectangular_object():
     def size(self, value):
         if value is None:
             self._size = self.parent.size
-        self._size = np.array(value)
+        else:
+            self._size = np.array(value)
 
     @property
     def screen(self):
@@ -139,7 +144,7 @@ class Plot_object(Rectangular_object):
 
 
 class RectImage(Rectangular_object):
-    def __init__(self, parent, pos, image):
+    def __init__(self, parent, pos, image, **kwargs):
         image = Image.open(image)
         size = image.size
         mode = image.mode
@@ -186,9 +191,9 @@ class Button(Rectangular_object):
             return
         super(Button, self).draw()
         pygame.draw.rect(self.screen, (200, 200, 200), (self.pos[0], self.pos[1], self.size[0], self.size[1]), 1)
-        self.screen.blit(self.text_surface, (
-            self.pos[0] + self.size[0] / 2 - len(self.text[2:]) * 4.5, self.pos[1] + self.size[1] / 2 - 12))
-
+        self.screen.blit(self.text_surface,
+                         (self.pos[0] + self.size[0] / 2 - self.text_surface.get_width() /2,
+                          self.pos[1] + self.size[1] / 2 - self.text_surface.get_height()/2))
     def click(self):
         if self.mouseover:
             self.action()
@@ -211,7 +216,8 @@ class Textfeld(Rectangular_object):
         pygame.draw.rect(self.screen, (150, 150, 150), (self.pos[0], self.pos[1], self.size[0], self.size[1]), 0)
         pygame.draw.rect(self.screen, (200, 200, 200), (self.pos[0], self.pos[1], self.size[0], self.size[1]), 1)
         self.screen.blit(self.text_surface,
-                         (self.pos[0] + self.size[0] / 2 - len(self.text) * 4.5, self.pos[1] + self.size[1] / 2 - 12))
+                         (self.pos[0] + self.size[0] / 2 - self.text_surface.get_width() /2,
+                          self.pos[1] + self.size[1] / 2 - self.text_surface.get_height()/2))
 
     @property
     def text_surface(self):

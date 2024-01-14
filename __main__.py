@@ -1,13 +1,4 @@
-
-
-import pygame
-import pygame.locals
-from PIL import Image
-from sys import platform
-from time import time
-
-import numpy as np
-
+from GUI import myGUI
 
 
 if __name__ == "__main__":

@@ -9,6 +9,7 @@ def add(obj, var, val):
 
 class myGUI():
     timestamp = 0
+    FPS = 25
     pos = None
     running = True
     drawables = []
@@ -16,6 +17,7 @@ class myGUI():
     updateables = []
     rand = 0.3
     keyboard = {}
+    mouse = {}
     toggle_update = False
     def __init__(self):
         pygame.init()
@@ -23,9 +25,9 @@ class myGUI():
         self.myfont = pygame.font.SysFont("Comic Sans MS", 15 if 'win' in platform else 15)
         self.screen = pygame.display.get_surface()
         self.plots = []
+        self.manual_init()
         self.setup_buttons()
         self.setup_plots()
-        self.manual_init()
         self.timer = time()
 
     def manual_init(self):
@@ -61,13 +63,18 @@ class myGUI():
     def run(self):
         while self.mainloop():
             pass
+        self.exit_game()
         pygame.quit()
 
+    def exit_game(self):
+        pass
     @property
     def mouse_pos(self):
         ### todo find out if it is worth to store the information
         return pygame.mouse.get_pos()
 
+    def keydown(self):
+        pass
     def mainloop(self):
         if time() - self.timer > 1 / 10:
             self.timer = time()
@@ -77,18 +84,21 @@ class myGUI():
             if event.type == pygame.QUIT:
                 return False
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_ESCAPE:
+                self.keydown()
+                if self.event.key == pygame.K_ESCAPE:
                     return False
                 self.keyboard[event.key] = True
-
             elif event.type == pygame.KEYUP:
                 self.keyboard[event.key] = False
+
             elif event.type == pygame.MOUSEBUTTONDOWN:
+                self.mouse[event.button] = True
                 self.click()
             elif event.type == pygame.MOUSEBUTTONUP:
-                pass
+                self.mouse[event.button] = False
 
-        if time() - self.timestamp > 0.2:
+        if time() - self.timestamp > 1/self.FPS:
+            self.timestamp = time()
             self.screen.fill((0, 0, 0))
             self.draw()
             if self.toggle_update:
