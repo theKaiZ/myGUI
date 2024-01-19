@@ -93,7 +93,7 @@ class S1(Slide):
     def manual_init(self):
         Rectangular_object(self, pos=(00, 00), size=(50, 50))
         R = Rectangular_object(self, pos=(100, 200), size=(50, 50))
-        Button(self, (260,100), (50,50), "Hallo",command=lambda:print("Miaz"))
+        Button(self, (260,100), (50,50), "Hallo",command=lambda:R.__setattr__("color", np.random.randint((235,235,235))))
         # P =Plot_object(self.parent,(0,00),(300,300))
         self.actions.append(lambda: R.__setattr__("color",(10,50,30)))
 
@@ -116,7 +116,8 @@ class S3(Slide):
 class Presenter(myGUI):
     active_slide = None
     num_slide = 0
-
+    size=np.array((1920,1080))
+    mode = pygame.locals.FULLSCREEN
     def manual_init(self):
         self.slides = [lambda: S1(self),
                        lambda: S2(self),
