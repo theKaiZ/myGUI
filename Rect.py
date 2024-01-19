@@ -18,12 +18,13 @@ class Rectangular_object():
     _corners = None
     _pos = None
     _size = None
-
+    _color = None
     def __init__(self, parent, **kwargs):
         self.parent = parent
         self.add2GUI()
         self.pos = kwargs.get("pos")
         self.size = kwargs.get("size")
+        self.color = kwargs.get("color")
         self.visible = True if kwargs.get("visible") is None else kwargs.get("visible")
 
     @property
@@ -39,7 +40,7 @@ class Rectangular_object():
         if value is None:
             self._pos = self.parent.pos
         else:
-            self._pos = np.array(value)
+            self._pos = self.parent.pos + np.array(value)
 
     @property
     def size(self):
@@ -75,8 +76,19 @@ class Rectangular_object():
     def draw(self):
         if not self.visible:
             return
-        pygame.draw.rect(self.screen, (150, 150, 150) if self.mouseover else (170, 170, 170),
+        pygame.draw.rect(self.screen, self.color if self.mouseover else self.color+(20,20,20),
                          (self.pos[0], self.pos[1], self.size[0], self.size[1]), 0)
+
+    @property
+    def color(self):
+        return self._color
+
+    @color.setter
+    def color(self, value):
+        if value is None:
+            self._color = np.array([150, 150, 150])
+        else:
+            self._color=np.array(value)
 
     @property
     def corners(self):
@@ -98,6 +110,9 @@ class Rectangular_object():
         if mouse[1] > corn[1, 1]:
             return False
         return True
+
+    #def __del__(self):
+    #    print("delte",self,"from",self.parent)
 
 
 class Plot_object(Rectangular_object):

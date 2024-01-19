@@ -19,9 +19,11 @@ class myGUI():
     keyboard = {}
     mouse = {}
     toggle_update = False
+    pos = np.array([0,0])
+    size = np.array([960,720])
     def __init__(self):
         pygame.init()
-        pygame.display.set_mode((960, 720), pygame.locals.DOUBLEBUF)
+        pygame.display.set_mode(self.size, pygame.locals.DOUBLEBUF)
         self.myfont = pygame.font.SysFont("Comic Sans MS", 15 if 'win' in platform else 15)
         self.screen = pygame.display.get_surface()
         self.plots = []
