@@ -210,7 +210,7 @@ class Button(Rectangular_object):
                          (self.pos[0] + self.size[0] / 2 - self.text_surface.get_width() /2,
                           self.pos[1] + self.size[1] / 2 - self.text_surface.get_height()/2))
     def click(self):
-        if self.mouseover:
+        if self.mouseover and self.parent.event.button==1:
             self.action()
 
     def action(self):
