@@ -20,12 +20,12 @@ class myGUI():
     mouse = {}
     toggle_update = False
     pos = np.array([0,0])
-    size = np.array([960,720])
+    size = np.array([1800,900])
     mode = pygame.locals.DOUBLEBUF
     def __init__(self):
         pygame.init()
         pygame.display.set_mode(self.size, self.mode)
-        self.myfont = pygame.font.SysFont("Comic Sans MS", 15 if 'win' in platform else 15)
+        self.myfont = pygame.font.SysFont("Comic Sans MS", 15 if 'win' in platform else 30)
         self.screen = pygame.display.get_surface()
         self.plots = []
         self.manual_init()

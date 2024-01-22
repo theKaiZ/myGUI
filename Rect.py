@@ -29,7 +29,9 @@ class Rectangular_object():
 
     @property
     def pos(self):
-        return self._pos
+        if hasattr(self.parent,"offset"):
+            return self._pos + self.parent.pos + [0,self.parent.offset]
+        return self._pos + self.parent.pos
 
     @property
     def event(self):
@@ -40,7 +42,7 @@ class Rectangular_object():
         if value is None:
             self._pos = self.parent.pos
         else:
-            self._pos = self.parent.pos + np.array(value)
+            self._pos =  np.array(value)
 
     @property
     def size(self):
@@ -111,8 +113,8 @@ class Rectangular_object():
             return False
         return True
 
-    #def __del__(self):
-    #    print("delte",self,"from",self.parent)
+    def __del__(self):
+        print("delte",self,"from",self.parent.__class__.__name__)
 
 
 class Plot_object(Rectangular_object):
@@ -169,6 +171,8 @@ class RectImage(Rectangular_object):
 
     def draw(self):
         self.screen.blit(self.image, self.pos)
+
+
 
 
 class RectImageSeries(Rectangular_object):

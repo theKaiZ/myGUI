@@ -5,8 +5,7 @@ import numpy as np
 class Slide():
     _pos = None
     _size = None
-    def __init__(self, parent):
-        #print("init slide",self.__class__.__name__)
+    def __init__(self, parent, **kwargs):
         self.actions = []  # actions taken on clicks
         self.drawables = []
         self.updateables = []
@@ -82,7 +81,6 @@ class Slide():
             obj.click()
 
     def update(self):
-        #print("update slide")
         for obj in self.updateables:
             obj.update()
 
@@ -92,7 +90,6 @@ class Slide():
             obj.draw()
 
     def removefromGUI(self):
-        #print("remove",self.__class__.__name__)
         for obj in self.drawables[::-1]:
             obj.removefromGUI()
         for obj in self.updateables[::-1]:
@@ -131,7 +128,7 @@ class S3(Slide):
 class Presenter(myGUI):
     active_slide = None
     num_slide = 0
-    size=np.array((1000,1000))
+    size=np.array((800,800))
     #mode = pygame.locals.FULLSCREEN
     def manual_init(self):
         self.slides = [lambda: S1(self),
