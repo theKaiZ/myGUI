@@ -21,6 +21,18 @@ class Slide():
         pass
 
     @property
+    def toggle_update(self):
+        return self.parent.toggle_update
+
+    @toggle_update.setter
+    def toggle_update(self, value):
+        self.parent.toggle_update=value
+
+    @property
+    def event(self):
+        return self.parent.event
+
+    @property
     def pos(self):
         if self._pos is None:
             return self.parent.pos
@@ -69,6 +81,7 @@ class Slide():
             obj.click()
 
     def update(self):
+        print("update slide")
         for obj in self.updateables:
             obj.update()
 

@@ -122,7 +122,7 @@ class Plot_object(Rectangular_object):
 
     def __init__(self, parent, pos, size, **kwargs):
         ###todo update size
-        super(Plot_object, self).__init__(parent, pos, size, **kwargs)
+        super(Plot_object, self).__init__(parent=parent, pos=pos, size=size, **kwargs)
         self.setup()
 
     def setup(self):
@@ -281,3 +281,4 @@ class ScrollTextfeld(Textfeld):
                 new_value = self.limits[1]
         setattr(self.parent, self.value, new_value)
         self._text_surface = None
+        self.parent.toggle_update=True
