@@ -12,9 +12,7 @@ from sys import platform
 
 
 ### todo move that away
-
-
-class Rectangular_object():
+class Rect():
     _corners = None
     _pos = None
     _size = None
@@ -25,17 +23,12 @@ class Rectangular_object():
         self.pos = kwargs.get("pos")
         self.size = kwargs.get("size")
         self.color = kwargs.get("color")
-        self.visible = True if kwargs.get("visible") is None else kwargs.get("visible")
 
     @property
     def pos(self):
         if hasattr(self.parent,"offset"):
             return self._pos + self.parent.pos + [0,self.parent.offset]
         return self._pos + self.parent.pos
-
-    @property
-    def event(self):
-        return self.parent.event
 
     @pos.setter
     def pos(self, value):
@@ -76,9 +69,7 @@ class Rectangular_object():
             self.parent.updateables.remove(self)
 
     def draw(self):
-        if not self.visible:
-            return
-        pygame.draw.rect(self.screen, self.color if self.mouseover else self.color+(20,20,20),
+        pygame.draw.rect(self.screen, self.color,
                          (self.pos[0], self.pos[1], self.size[0], self.size[1]), 0)
 
     @property
@@ -91,6 +82,29 @@ class Rectangular_object():
             self._color = np.array([150, 150, 150])
         else:
             self._color=np.array(value)
+
+
+
+class Rectangular_object(Rect):
+
+    def __init__(self, parent, **kwargs):
+        super().__init__(parent=parent, **kwargs)
+        self.visible = True if kwargs.get("visible") is None else kwargs.get("visible")
+
+
+
+    @property
+    def event(self):
+        return self.parent.event
+
+
+
+
+    def draw(self):
+        if not self.visible:
+            return
+        super().draw()
+
 
     @property
     def corners(self):
@@ -113,8 +127,8 @@ class Rectangular_object():
             return False
         return True
 
-    def __del__(self):
-        print("delte",self,"from",self.parent.__class__.__name__)
+    #def __del__(self):
+    #    print("delte",self,"from",self.parent.__class__.__name__)
 
 
 class Plot_object(Rectangular_object):

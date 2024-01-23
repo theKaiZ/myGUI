@@ -48,9 +48,9 @@ class myGUI():
             obj.draw()
 
     def update(self):
+        self.toggle_update = False
         for obj in self.updateables:
             obj.update()
-        self.toggle_update = False
 
     def setup_plots(self):
         pass
