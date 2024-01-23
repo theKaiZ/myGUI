@@ -2,7 +2,7 @@ import pygame
 from myGUI.Rect import ScrollTextfeld, Rectangular_object
 from myGUI.Slide import Presenter,Slide
 import numpy as np
-
+from time import time
 
 def generate_ruleset(number):
     binstring = ""
@@ -11,6 +11,11 @@ def generate_ruleset(number):
         binstring = str(number%2) + binstring
         number//=2
     print(n, binstring)
+    binarray = np.zeros(8,dtype=int)
+    for i in range(8):
+        binarray[i]=int(binstring[i])
+    return binarray
+
     ruledict = {}
     for i in range(2):
         for j in range(2):
@@ -19,12 +24,34 @@ def generate_ruleset(number):
                 ruledict[f"{i}{j}{k}"] = binstring[4*i+2*j+k]
     return ruledict
 
+
+from numba import njit,prange
+@njit(cache=True)
 def next_generation(cells, rulset, gen):
     nx = cells.shape[0]
-    old = gen-1
+    old_cell = cells[:,gen-1]
     for i in range(nx):
-        triple = f"{cells[i-1,old]}{cells[i,old]}{cells[(i+1)%nx,old]}"
-        cells[i,gen] = int(rulset[triple])
+        #triple = f"{cells[i-1,old]}{cells[i,old]}{cells[(i+1)%nx,old]}"
+        triple = 4*old_cell[i-1] +2* old_cell[i]+ old_cell[(i+1)%nx]
+        cells[i,gen] = rulset[triple]
+
+
+class ca_image(Rectangular_object):
+    def __init__(self, parent,cells, **kwargs):
+        pos = parent.pos
+        size = parent.size
+        super().__init__(parent=parent, pos=pos, size=size)
+        self.cells = cells
+
+    def draw(self):
+        nx, ny = self.cells.size
+        s = self.size[0]//nx
+        for x in range(nx):
+            for y in range(ny):
+                pass
+                ### todo
+                #pygame.draw.rect(self.screen, )
+
 
 class CA_Slide(Slide):
     def plot_gen(self):
@@ -34,8 +61,8 @@ class CA_Slide(Slide):
                                color=(0, 0, 0) if self.cells[i,gen] == 0 else (235, 235, 235))
 
     def manual_init(self):
-
-        self.s = 20  ###box size
+        t = time()
+        self.s = 5  ###box size
         self.nx = self.size[0]//self.s
         self.ny = self.size[1]//self.s
         self.cells = np.zeros((self.nx,self.ny),dtype=int)
@@ -48,6 +75,7 @@ class CA_Slide(Slide):
             next_generation(self.cells, self.ruleset, i)
 
         self.plot_gen()
+        print(time()-t)
 
 
 
