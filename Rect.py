@@ -1,7 +1,8 @@
 import matplotlib.pyplot as plt
 import pylab
 import matplotlib
-
+from os import listdir
+from os.path import join
 matplotlib.use("Agg")
 import matplotlib.backends.backend_agg as agg
 
@@ -208,6 +209,26 @@ class RectImageSeries(Rectangular_object):
             if self.index >= len(self.images):
                 self.index = 0
         self.screen.blit(self.images[self.index], self.pos)
+
+class VideoRect(Rectangular_object):
+    index = 0
+
+    def __init__(self, parent, pos, folder):
+        images = [Image.open(join(folder, image)) for image in sorted(listdir(folder))]
+        size = images[0].size
+        mode = images[0].mode
+        datasets = [image.tobytes() for image in images]
+        self.images = [pygame.image.frombuffer(data, size, mode) for data in datasets]
+        super(VideoRect, self).__init__(parent=parent, pos=pos, size=size)
+
+    def draw(self):
+        if not self.visible:
+            return
+        self.index += 1
+        if self.index >= len(self.images):
+            self.index = 0
+        self.screen.blit(self.images[self.index], self.pos)
+
 
 
 class Button(Rectangular_object):

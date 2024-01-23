@@ -37,20 +37,25 @@ def next_generation(cells, rulset, gen):
 
 
 class ca_image(Rectangular_object):
-    def __init__(self, parent,cells, **kwargs):
-        pos = parent.pos
-        size = parent.size
-        super().__init__(parent=parent, pos=pos, size=size)
+    def __init__(self, parent,cells,size, **kwargs):
+        pos=(0,0)
+        self.s = size
+        #size = parent.size
+        super().__init__(parent=parent, pos=pos)
         self.cells = cells
 
     def draw(self):
-        nx, ny = self.cells.size
-        s = self.size[0]//nx
+        nx, ny = self.cells.shape
+        s = self.s
+        ### todo add option for s== 1 that it renders the image with pil or so
         for x in range(nx):
-            for y in range(ny):
-                pass
-                ### todo
-                #pygame.draw.rect(self.screen, )
+            for y in range(self.parent.gen):
+                pygame.draw.rect(self.screen,
+                                 (0,0,0) if self.cells[x,y] else (255,255,255),
+                                 (self.pos[0]+x*s,
+                                  self.pos[1]+y*s,
+                                  s,
+                                  s) )
 
 
 class CA_Slide(Slide):
@@ -62,11 +67,11 @@ class CA_Slide(Slide):
 
     def manual_init(self):
         t = time()
-        self.s = 5  ###box size
+        self.s = 2  ###box size
         self.nx = self.size[0]//self.s
         self.ny = self.size[1]//self.s
         self.cells = np.zeros((self.nx,self.ny),dtype=int)
-        self.gen = 0
+        self.gen = 1
         self.cells[self.nx//4,0] = 1
         self.cells[self.nx//4*2,0] = 1
         self.cells[self.nx//4*3,0] = 1
@@ -74,9 +79,13 @@ class CA_Slide(Slide):
         for i in range(1,self.ny):
             next_generation(self.cells, self.ruleset, i)
 
-        self.plot_gen()
+        #self.plot_gen()
+        ca_image(self, self.cells, self.s)
         print(time()-t)
 
+    def update(self):
+        self.gen += 1
+        self.parent.toggle_update=True
 
 
 
