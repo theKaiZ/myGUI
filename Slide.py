@@ -12,8 +12,8 @@ class Slide():
         self.clickables = []
         self.parent = parent
         parent.active_slide = self
-        self.pos = parent.pos+[0,80]
-        self.size = parent.size-[0,80+50]
+        self.pos = parent.pos+ kwargs.get("pos") if kwargs.get("pos") else [0,80]
+        self.size = kwargs.get("size") if kwargs.get("size") else  parent.size-[0,80+50]
         self.manual_init()
         self.add2GUI()
 

@@ -11,8 +11,6 @@ import numpy as np
 from PIL import Image
 from sys import platform
 
-
-### todo move that away
 class Rect():
     _corners = None
     _pos = None
@@ -84,6 +82,13 @@ class Rect():
         else:
             self._color=np.array(value)
 
+    @property
+    def corners(self):
+        if self._corners is not None:
+            return self._corners
+        self._corners = np.concatenate(([self.pos], [self.pos + self.size]))
+        return self._corners
+
 
 
 class Rectangular_object(Rect):
@@ -92,27 +97,14 @@ class Rectangular_object(Rect):
         super().__init__(parent=parent, **kwargs)
         self.visible = True if kwargs.get("visible") is None else kwargs.get("visible")
 
-
-
     @property
     def event(self):
         return self.parent.event
-
-
-
 
     def draw(self):
         if not self.visible:
             return
         super().draw()
-
-
-    @property
-    def corners(self):
-        if self._corners is not None:
-            return self._corners
-        self._corners = np.concatenate(([self.pos], [self.pos + self.size]))
-        return self._corners
 
     @property
     def mouseover(self):
@@ -182,7 +174,7 @@ class RectImage(Rectangular_object):
         mode = image.mode
         data = image.tobytes()
         self.image = pygame.image.frombuffer(data, size, mode)
-        super(RectImage, self).__init__(parent, pos, size)
+        super(RectImage, self).__init__(parent=parent, pos=pos, size=size)
 
     def draw(self):
         self.screen.blit(self.image, self.pos)
@@ -210,16 +202,40 @@ class RectImageSeries(Rectangular_object):
                 self.index = 0
         self.screen.blit(self.images[self.index], self.pos)
 
+class ImgOnLoad():
+    _img = None
+    _Image = None
+    def __init__(self, path):
+        self.path = path
+    @property
+    def img(self):
+        if self._img is not None:
+            return self._img
+        img = Image.open(self.path)
+        size = img.size
+        mode = img.mode
+        data = img.tobytes()
+        self._img = pygame.image.frombuffer(data, size, mode)
+        return self._img
+
+    @property
+    def size(self):
+        return self.Image.size
+
+    @property
+    def Image(self):
+        if self._Image is not None:
+            return self._Image
+        self._Image = Image.open(self.path)
+        return self._Image
+
 class VideoRect(Rectangular_object):
     index = 0
 
-    def __init__(self, parent, pos, folder):
-        images = [Image.open(join(folder, image)) for image in sorted(listdir(folder))]
-        size = images[0].size
-        mode = images[0].mode
-        datasets = [image.tobytes() for image in images]
-        self.images = [pygame.image.frombuffer(data, size, mode) for data in datasets]
-        super(VideoRect, self).__init__(parent=parent, pos=pos, size=size)
+    def __init__(self, parent, pos, folder, **kwargs):
+        self.images = [ImgOnLoad(join(folder, image)) for image in sorted(listdir(folder))]
+        super(VideoRect, self).__init__(parent=parent, pos=pos, size=self.images[0].size)
+        self.border = kwargs.get("border") or True
 
     def draw(self):
         if not self.visible:
@@ -227,24 +243,33 @@ class VideoRect(Rectangular_object):
         self.index += 1
         if self.index >= len(self.images):
             self.index = 0
-        self.screen.blit(self.images[self.index], self.pos)
-
+        self.screen.blit(self.images[self.index].img, self.pos)
+        if self.border is not None:
+            pygame.draw.rect(self.screen,(255,255,255), (self.pos[0], self.pos[1], self.size[0], self.size[1]),width=1)
 
 
 class Button(Rectangular_object):
     active = False
-
+    _text_surface = None
     def __init__(self, parent, pos, size, text, **kwargs):
         super(Button, self).__init__(parent, pos=pos, size=size, **kwargs)
         self.text = text
-        self.text_surface = parent.myfont.render(text, False, (0, 0, 0))
         self.command = kwargs.get("command")
+        self.text_color = kwargs.get("text_color") or (0,0,0)
+        self.panel = True if kwargs.get("panel") is None else kwargs.get("panel")
+
+    @property
+    def text_surface(self):
+        if self._text_surface is None:
+            self._text_surface = self.parent.myfont.render(self.text, False, self.text_color)
+        return self._text_surface
 
     def draw(self):
         if not self.visible:
             return
-        super(Button, self).draw()
-        pygame.draw.rect(self.screen, (200, 200, 200), (self.pos[0], self.pos[1], self.size[0], self.size[1]), 1)
+        if self.panel:
+            super(Button, self).draw()
+            pygame.draw.rect(self.screen, (200, 200, 200), (self.pos[0], self.pos[1], self.size[0], self.size[1]), 1)
         self.screen.blit(self.text_surface,
                          (self.pos[0] + self.size[0] / 2 - self.text_surface.get_width() /2,
                           self.pos[1] + self.size[1] / 2 - self.text_surface.get_height()/2))
