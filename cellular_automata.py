@@ -53,28 +53,21 @@ class ca_image(Rectangular_object):
                 pygame.draw.rect(self.screen,
                                  (0,0,0) if self.cells[x,y] else (255,255,255),
                                  (self.pos[0]+x*s,
-                                  self.pos[1]+y*s,
-                                  s,
-                                  s) )
+                                       self.pos[1]+y*s,
+                                       s,
+                                       s))
 
 
 class CA_Slide(Slide):
-    def plot_gen(self):
-        for gen in range(self.ny):
-          for i in range(self.nx):
-            Rectangular_object(self, pos=(i * self.s, gen * self.s), size=(self.s, self.s),
-                               color=(0, 0, 0) if self.cells[i,gen] == 0 else (235, 235, 235))
-
     def manual_init(self):
         t = time()
-        self.s = 2  ###box size
         self.nx = self.size[0]//self.s
         self.ny = self.size[1]//self.s
         self.cells = np.zeros((self.nx,self.ny),dtype=int)
-        self.gen = 1
-        self.cells[self.nx//4,0] = 1
-        self.cells[self.nx//4*2,0] = 1
-        self.cells[self.nx//4*3,0] = 1
+        self.gen = self.ny
+
+        for i in range(1,self.num_p+1):
+            self.cells[self.nx//(self.num_p+1)*i ,0] = 1
         self.ruleset = generate_ruleset(self.parent.rule)
         for i in range(1,self.ny):
             next_generation(self.cells, self.ruleset, i)
@@ -82,22 +75,54 @@ class CA_Slide(Slide):
         #self.plot_gen()
         ca_image(self, self.cells, self.s)
         print(time()-t)
+        self.toggle_update=True
+
+    @property
+    def s(self):
+        return self.parent.box_size
+
+    @property
+    def num_p(self):
+        return self.parent.num_p
 
     def update(self):
-        self.gen += 1
-        self.parent.toggle_update=True
+        if self.gen < self.ny:
+            self.gen += 1
+            self.parent.toggle_update=True
 
 
 
 class CA_Presenter(Presenter):
     _rule = 198
     size = np.array([1200,800])
+    _box_size = 5
+    _num_p = 1
     def manual_init(self):
         self.slides = [lambda:CA_Slide(self)]
 
     def setup_buttons(self):
         super().setup_buttons()
         ScrollTextfeld(self,pos=self.size-(200,50),size=(100,50), value="rule", change_value=1, limits=[0,255])
+        ScrollTextfeld(self,pos=self.size-(300,50),size=(100,50), value="box_size", change_value=1, limits=[1,20])
+        ScrollTextfeld(self,pos=self.size-(400,50),size=(100,50), value="num_p", change_value=1, limits=[1,30])
+
+    @property
+    def box_size(self):
+        return self._box_size
+    @box_size.setter
+    def box_size(self,value):
+        self._box_size = value
+        self.next
+
+    @property
+    def num_p(self):
+        return self._num_p
+
+    @num_p.setter
+    def num_p(self,value):
+        self._num_p = value
+        self.next
+
 
     def keydown(self):
         if self.event.key == pygame.K_UP:
