@@ -32,7 +32,7 @@ class Rect():
     @pos.setter
     def pos(self, value):
         if value is None:
-            self._pos = self.parent.pos
+            self._pos = np.array([0,0])
         else:
             self._pos =  np.array(value)
 
@@ -232,18 +232,22 @@ class ImgOnLoad():
 class VideoRect(Rectangular_object):
     index = 0
 
-    def __init__(self, parent, pos, folder, **kwargs):
+    def __init__(self, parent, folder, **kwargs):
         self.images = [ImgOnLoad(join(folder, image)) for image in sorted(listdir(folder))]
-        super(VideoRect, self).__init__(parent=parent, pos=pos, size=self.images[0].size)
-        self.border = kwargs.get("border") or True
+        super(VideoRect, self).__init__(parent=parent, size=self.images[0].size, **kwargs)
+        self.border = kwargs.get("border") if kwargs.get("border") is not None else True
+        self.loop = kwargs.get("loop") if kwargs.get("loop") is not None else False
 
     def draw(self):
         if not self.visible:
             return
-        self.index += 1
-        if self.index >= len(self.images):
-            self.index = 0
+
         self.screen.blit(self.images[self.index].img, self.pos)
+        if self.index < len(self.images)-1:
+            self.index += 1
+        elif self.index == len(self.images)-1 and self.loop:
+            self.index = 0
+
         if self.border is not None:
             pygame.draw.rect(self.screen,(255,255,255), (self.pos[0], self.pos[1], self.size[0], self.size[1]),width=1)
 
