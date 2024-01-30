@@ -16,25 +16,23 @@ class Rect():
     _pos = None
     _size = None
     _color = None
+    _offset = None
     def __init__(self, parent, **kwargs):
         self.parent = parent
         self.add2GUI()
-        self.pos = kwargs.get("pos")
+        self.pos = kwargs.get("pos") if kwargs.get("pos") is not None else np.array([0,0])
         self.size = kwargs.get("size")
-        self.color = kwargs.get("color")
+        self.color = kwargs.get("color") if kwargs.get("color") is not None else np.array([150, 150, 150])
 
     @property
     def pos(self):
-        if hasattr(self.parent,"offset"):
-            return self._pos + self.parent.pos + [0,self.parent.offset]
+        if self._offset is not None:
+            return self._pos + self.parent.pos + self._offset
         return self._pos + self.parent.pos
 
     @pos.setter
     def pos(self, value):
-        if value is None:
-            self._pos = np.array([0,0])
-        else:
-            self._pos =  np.array(value)
+        self._pos =  np.array(value)
 
     @property
     def size(self):
@@ -82,10 +80,7 @@ class Rect():
 
     @color.setter
     def color(self, value):
-        if value is None:
-            self._color = np.array([150, 150, 150])
-        else:
-            self._color=np.array(value)
+        self._color = np.array(value)
 
     @property
     def corners(self):
@@ -145,9 +140,9 @@ class Plot_object(Rectangular_object):
     def plot(self, xdata=None, ydata=None, **kwargs):
         self._surface = None
         if xdata is not None and ydata is not None:
-            self.ax.plot(xdata, ydata, **kwargs)
+            return self.ax.plot(xdata, ydata, **kwargs)
         elif xdata is not None:
-            self.ax.plot(xdata, **kwargs)
+            return self.ax.plot(xdata, **kwargs)
 
     @property
     def surface(self):
@@ -196,7 +191,7 @@ class RectImageSeries(Rectangular_object):
         mode = images[0].mode
         datasets = [image.tobytes() for image in images]
         self.images = [pygame.image.frombuffer(data, size, mode) for data in datasets]
-        super(RectImageSeries, self).__init__(parent, pos, size)
+        super(RectImageSeries, self).__init__(parent, pos = pos, size=size)
 
     def draw(self):
         if not self.visible:

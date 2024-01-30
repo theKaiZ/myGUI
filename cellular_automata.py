@@ -16,14 +16,6 @@ def generate_ruleset(number):
         binarray[i]=int(binstring[i])
     return binarray
 
-    ruledict = {}
-    for i in range(2):
-        for j in range(2):
-            for k in range(2):
-
-                ruledict[f"{i}{j}{k}"] = binstring[4*i+2*j+k]
-    return ruledict
-
 
 from numba import njit,prange
 @njit(cache=True)
@@ -50,13 +42,15 @@ class ca_image(Rectangular_object):
         ### todo add option for s== 1 that it renders the image with pil or so
         for x in range(nx):
             for y in range(self.parent.gen):
-                pygame.draw.rect(self.screen,
+                if s > 1:
+                    pygame.draw.rect(self.screen,
                                  (0,0,0) if self.cells[x,y] else (255,255,255),
                                  (self.pos[0]+x*s,
                                        self.pos[1]+y*s,
                                        s,
                                        s))
-
+                else:
+                    self.screen.set_at(self.pos+(x,y), (255,255,255) if self.cells[x,y] else (0,0,0))
 
 class CA_Slide(Slide):
     def manual_init(self):

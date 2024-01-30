@@ -1,22 +1,21 @@
-from myGUI.Rect import Button, Rectangular_object
+from myGUI.Rect import Button, Rectangular_object, Rect
 from myGUI.GUI import myGUI
 import pygame
 import numpy as np
-class Slide():
+class Slide(Rect):
     _pos = None
     _size = None
     def __init__(self, parent, **kwargs):
+        super().__init__(parent=parent, **kwargs)
         self.actions = []  # actions taken on clicks
         self.drawables = []
         self.updateables = []
         self.clickables = []
         self.keypressables = []
-        self.parent = parent
         parent.active_slide = self
         self.pos = parent.pos+ kwargs.get("pos") if kwargs.get("pos") else [0,80]
         self.size = kwargs.get("size") if kwargs.get("size") else  parent.size-[0,80+50]
         self.manual_init()
-        self.add2GUI()
 
     def manual_init(self):
         pass
@@ -33,25 +32,7 @@ class Slide():
     def event(self):
         return self.parent.event
 
-    @property
-    def pos(self):
-        if self._pos is None:
-            return self.parent.pos
-        return self._pos
 
-    @pos.setter
-    def pos(self, value):
-        self._pos = np.array(value)
-
-    @property
-    def size(self):
-        if self._size is None:
-            return self.parent.size -self.pos
-        return self._size
-
-    @size.setter
-    def size(self, value):
-        self._size = np.array(value)
 
     @property
     def next(self):
@@ -63,12 +44,6 @@ class Slide():
     @property
     def screen(self):
         return self.parent.screen
-
-    def add2GUI(self):
-        self.parent.drawables.append(self)
-        self.parent.updateables.append(self)
-        self.parent.clickables.append(self)
-        self.parent.keypressables.append(self)
 
     @property
     def myfont(self):
@@ -97,6 +72,7 @@ class Slide():
             obj.draw()
 
     def removefromGUI(self):
+        super().removefromGUI()
         for obj in self.drawables[::-1]:
             obj.removefromGUI()
         for obj in self.updateables[::-1]:
@@ -105,10 +81,6 @@ class Slide():
             obj.removefromGUI()
         for obj in self.keypressables[::-1]:
             obj.removefromGUI()
-        self.parent.drawables.remove(self)
-        self.parent.updateables.remove(self)
-        self.parent.clickables.remove(self)
-        self.parent.keypressables.remove(self)
 
 
 class S1(Slide):
