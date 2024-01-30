@@ -58,6 +58,9 @@ class Rect():
             self.parent.drawables.append(self)
         if hasattr(self, "update"):
             self.parent.updateables.append(self)
+        if hasattr(self, "keydown"):
+            self.parent.keypressables.append(self)
+
 
     def removefromGUI(self):
         if hasattr(self, "draw"):
@@ -66,6 +69,8 @@ class Rect():
             self.parent.clickables.remove(self)
         if hasattr(self, "update"):
             self.parent.updateables.remove(self)
+        if hasattr(self, "keydown"):
+            self.parent.keypressables.remove(self)
 
     def draw(self):
         pygame.draw.rect(self.screen, self.color,
@@ -205,8 +210,9 @@ class RectImageSeries(Rectangular_object):
 class ImgOnLoad():
     _img = None
     _Image = None
-    def __init__(self, path):
+    def __init__(self, path, **kwargs):
         self.path = path
+        self.scale = kwargs.get("scale")
     @property
     def img(self):
         if self._img is not None:
@@ -233,7 +239,7 @@ class VideoRect(Rectangular_object):
     index = 0
 
     def __init__(self, parent, folder, **kwargs):
-        self.images = [ImgOnLoad(join(folder, image)) for image in sorted(listdir(folder))]
+        self.images = [ImgOnLoad(join(folder, image), **kwargs) for image in sorted(listdir(folder))]
         super(VideoRect, self).__init__(parent=parent, size=self.images[0].size, **kwargs)
         self.border = kwargs.get("border") if kwargs.get("border") is not None else True
         self.loop = kwargs.get("loop") if kwargs.get("loop") is not None else False

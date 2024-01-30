@@ -10,6 +10,7 @@ class Slide():
         self.drawables = []
         self.updateables = []
         self.clickables = []
+        self.keypressables = []
         self.parent = parent
         parent.active_slide = self
         self.pos = parent.pos+ kwargs.get("pos") if kwargs.get("pos") else [0,80]
@@ -67,6 +68,7 @@ class Slide():
         self.parent.drawables.append(self)
         self.parent.updateables.append(self)
         self.parent.clickables.append(self)
+        self.parent.keypressables.append(self)
 
     @property
     def myfont(self):
@@ -75,6 +77,11 @@ class Slide():
     @property
     def mouse_pos(self):
         return self.parent.mouse_pos
+
+
+    def keydown(self):
+        for obj in self.keypressables:
+            obj.keydown()
 
     def click(self):
         for obj in self.clickables:
@@ -96,9 +103,12 @@ class Slide():
             obj.removefromGUI()
         for obj in self.clickables[::-1]:
             obj.removefromGUI()
+        for obj in self.keypressables[::-1]:
+            obj.removefromGUI()
         self.parent.drawables.remove(self)
         self.parent.updateables.remove(self)
         self.parent.clickables.remove(self)
+        self.parent.keypressables.remove(self)
 
 
 class S1(Slide):
@@ -125,6 +135,12 @@ class S3(Slide):
         Rectangular_object(self, pos=(350, 200), size=(50, 50))
 
 
+class NextButton(Button):
+    def keydown(self):
+        if self.event.key == pygame.K_RIGHT:
+            self.command()
+
+
 class Presenter(myGUI):
     active_slide = None
     num_slide = 0
@@ -136,7 +152,7 @@ class Presenter(myGUI):
                        lambda: S3(self)]
 
     def setup_buttons(self):
-        Button(self, self.size -(100, 50), (100, 50), "NEXT", command=lambda: self.next)
+        NextButton(self, self.size -(100, 50), (100, 50), "NEXT", command=lambda: self.next)
 
     @property
     def next(self):

@@ -15,6 +15,7 @@ class myGUI():
     drawables = []
     clickables = []
     updateables = []
+    keypressables = []   ####todo find a better name for that
     rand = 0.3
     keyboard = {}
     mouse = {}
@@ -22,6 +23,7 @@ class myGUI():
     pos = np.array([0,0])
     size = np.array([1800,900])
     mode = pygame.locals.DOUBLEBUF
+    color=(255,255,255)
     def __init__(self):
         pygame.init()
         pygame.display.set_mode(self.size, self.mode)
@@ -77,7 +79,9 @@ class myGUI():
         return pygame.mouse.get_pos()
 
     def keydown(self):
-        pass
+        for obj in self.keypressables:
+            obj.keydown()
+
     def mainloop(self):
         if time() - self.timer > 1 / 10:
             self.timer = time()
@@ -102,7 +106,7 @@ class myGUI():
 
         if time() - self.timestamp > 1/self.FPS:
             self.timestamp = time()
-            self.screen.fill((0, 0, 0))
+            self.screen.fill(self.color)
             self.draw()
             if self.toggle_update:
                 self.update()
@@ -113,6 +117,7 @@ class myGUI():
         print("Drawables",self.drawables)
         print("Clickables",self.clickables)
         print("Updatteables",self.updateables)
+        print("Keypressables",self.keypressables)
 
 def main():
     myGUI().run()
