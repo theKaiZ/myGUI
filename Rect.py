@@ -3,6 +3,7 @@ import pylab
 import matplotlib
 from os import listdir
 from os.path import join
+
 matplotlib.use("Agg")
 import matplotlib.backends.backend_agg as agg
 
@@ -11,16 +12,18 @@ import numpy as np
 from PIL import Image
 from sys import platform
 
+
 class Rect():
     _corners = None
     _pos = None
     _size = None
     _color = None
     _offset = None
+
     def __init__(self, parent, **kwargs):
         self.parent = parent
         self.add2GUI()
-        self.pos = kwargs.get("pos") if kwargs.get("pos") is not None else np.array([0,0])
+        self.pos = kwargs.get("pos") if kwargs.get("pos") is not None else np.array([0, 0])
         self.size = kwargs.get("size")
         self.color = kwargs.get("color") if kwargs.get("color") is not None else np.array([150, 150, 150])
 
@@ -32,7 +35,7 @@ class Rect():
 
     @pos.setter
     def pos(self, value):
-        self._pos =  np.array(value)
+        self._pos = np.array(value)
 
     @property
     def size(self):
@@ -58,7 +61,6 @@ class Rect():
             self.parent.updateables.append(self)
         if hasattr(self, "keydown"):
             self.parent.keypressables.append(self)
-
 
     def removefromGUI(self):
         if hasattr(self, "draw"):
@@ -90,7 +92,6 @@ class Rect():
         return self._corners
 
 
-
 class Rectangular_object(Rect):
 
     def __init__(self, parent, **kwargs):
@@ -120,7 +121,7 @@ class Rectangular_object(Rect):
             return False
         return True
 
-    #def __del__(self):
+    # def __del__(self):
     #    print("delte",self,"from",self.parent.__class__.__name__)
 
 
@@ -180,8 +181,6 @@ class RectImage(Rectangular_object):
         self.screen.blit(self.image, self.pos)
 
 
-
-
 class RectImageSeries(Rectangular_object):
     index = 0
 
@@ -191,7 +190,7 @@ class RectImageSeries(Rectangular_object):
         mode = images[0].mode
         datasets = [image.tobytes() for image in images]
         self.images = [pygame.image.frombuffer(data, size, mode) for data in datasets]
-        super(RectImageSeries, self).__init__(parent, pos = pos, size=size)
+        super(RectImageSeries, self).__init__(parent=parent, pos=pos, size=size)
 
     def draw(self):
         if not self.visible:
@@ -202,12 +201,15 @@ class RectImageSeries(Rectangular_object):
                 self.index = 0
         self.screen.blit(self.images[self.index], self.pos)
 
+
 class ImgOnLoad():
     _img = None
     _Image = None
+
     def __init__(self, path, **kwargs):
         self.path = path
         self.scale = kwargs.get("scale")
+
     @property
     def img(self):
         if self._img is not None:
@@ -230,6 +232,7 @@ class ImgOnLoad():
         self._Image = Image.open(self.path)
         return self._Image
 
+
 class VideoRect(Rectangular_object):
     index = 0
 
@@ -244,23 +247,25 @@ class VideoRect(Rectangular_object):
             return
 
         self.screen.blit(self.images[self.index].img, self.pos)
-        if self.index < len(self.images)-1:
+        if self.index < len(self.images) - 1:
             self.index += 1
-        elif self.index == len(self.images)-1 and self.loop:
+        elif self.index == len(self.images) - 1 and self.loop:
             self.index = 0
 
         if self.border is not None:
-            pygame.draw.rect(self.screen,(255,255,255), (self.pos[0], self.pos[1], self.size[0], self.size[1]),width=1)
+            pygame.draw.rect(self.screen, (255, 255, 255), (self.pos[0], self.pos[1], self.size[0], self.size[1]),
+                             width=1)
 
 
 class Button(Rectangular_object):
     active = False
     _text_surface = None
+
     def __init__(self, parent, pos, size, text, **kwargs):
-        super(Button, self).__init__(parent, pos=pos, size=size, **kwargs)
+        super(Button, self).__init__(parent=parent, pos=pos, size=size, **kwargs)
         self.text = text
         self.command = kwargs.get("command")
-        self.text_color = kwargs.get("text_color") or (0,0,0)
+        self.text_color = kwargs.get("text_color") or (0, 0, 0)
         self.panel = True if kwargs.get("panel") is None else kwargs.get("panel")
 
     @property
@@ -276,10 +281,11 @@ class Button(Rectangular_object):
             super(Button, self).draw()
             pygame.draw.rect(self.screen, (200, 200, 200), (self.pos[0], self.pos[1], self.size[0], self.size[1]), 1)
         self.screen.blit(self.text_surface,
-                         (self.pos[0] + self.size[0] / 2 - self.text_surface.get_width() /2,
-                          self.pos[1] + self.size[1] / 2 - self.text_surface.get_height()/2))
+                         (self.pos[0] + self.size[0] / 2 - self.text_surface.get_width() / 2,
+                          self.pos[1] + self.size[1] / 2 - self.text_surface.get_height() / 2))
+
     def click(self):
-        if self.mouseover and self.parent.event.button==1:
+        if self.mouseover and self.parent.event.button == 1:
             self.action()
 
     def action(self):
@@ -291,7 +297,7 @@ class Textfeld(Rectangular_object):
     _text_surface = None
 
     def __init__(self, parent, pos, size, value):
-        super().__init__(parent, pos=pos, size=size)
+        super().__init__(parent=parent, pos=pos, size=size)
         self.value = value
 
     def draw(self):
@@ -300,8 +306,8 @@ class Textfeld(Rectangular_object):
         pygame.draw.rect(self.screen, (150, 150, 150), (self.pos[0], self.pos[1], self.size[0], self.size[1]), 0)
         pygame.draw.rect(self.screen, (200, 200, 200), (self.pos[0], self.pos[1], self.size[0], self.size[1]), 1)
         self.screen.blit(self.text_surface,
-                         (self.pos[0] + self.size[0] / 2 - self.text_surface.get_width() /2,
-                          self.pos[1] + self.size[1] / 2 - self.text_surface.get_height()/2))
+                         (self.pos[0] + self.size[0] / 2 - self.text_surface.get_width() / 2,
+                          self.pos[1] + self.size[1] / 2 - self.text_surface.get_height() / 2))
 
     @property
     def text_surface(self):
@@ -350,4 +356,4 @@ class ScrollTextfeld(Textfeld):
                 new_value = self.limits[1]
         setattr(self.parent, self.value, new_value)
         self._text_surface = None
-        self.parent.toggle_update=True
+        self.parent.toggle_update = True
