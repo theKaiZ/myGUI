@@ -35,6 +35,9 @@ class myGUI():
         self.setup_plots()
         self.timer = time()
 
+    def background(self):
+        self.screen.fill(self.color)
+
     def manual_init(self):
         self.test1 = 1
         self.test2 = 100
@@ -106,7 +109,7 @@ class myGUI():
 
         if time() - self.timestamp > 1/self.FPS:
             self.timestamp = time()
-            self.screen.fill(self.color)
+            self.background()
             self.draw()
             if self.toggle_update:
                 self.update()
