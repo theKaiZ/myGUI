@@ -96,9 +96,9 @@ class CA_Presenter(Presenter):
 
     def setup_buttons(self):
         super().setup_buttons()
-        ScrollTextfeld(self,pos=self.size-(200,50),size=(100,50), value="rule", change_value=1, limits=[0,255])
-        ScrollTextfeld(self,pos=self.size-(300,50),size=(100,50), value="box_size", change_value=1, limits=[1,20])
-        ScrollTextfeld(self,pos=self.size-(400,50),size=(100,50), value="num_p", change_value=1, limits=[1,30])
+        ScrollTextfeld(self,self.size-(200,50),(100,50), "rule", 1,[0,255])
+        ScrollTextfeld(self,self.size-(300,50),(100,50), "box_size", 1, [1,20])
+        ScrollTextfeld(self,self.size-(400,50),(100,50), "num_p", 1, [1,30])
 
     @property
     def box_size(self):
