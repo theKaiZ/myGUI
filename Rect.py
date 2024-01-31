@@ -136,7 +136,7 @@ class Plot_object(Rectangular_object):
         self.setup()
 
     def setup(self):
-        self.fig, self.ax = plt.subplots()
+        self.fig, self.ax = plt.subplots(1,1,figsize=self.size//100)
 
     def plot(self, xdata=None, ydata=None, **kwargs):
         self._surface = None
@@ -295,11 +295,12 @@ class Button(Rectangular_object):
 
 class Textfeld(Rectangular_object):
     _text_surface = None
-
+    _text_color = None
     def __init__(self, parent, pos, size, key, **kwargs):
         super().__init__(parent=parent, pos=pos, size=size)
         self.key = key
         self.index = kwargs.get("index")
+        self.text_color = kwargs.get("text_color")
 
     def draw(self):
         if not self.visible:
@@ -323,6 +324,15 @@ class Textfeld(Rectangular_object):
             return
         getattr(self.parent, self.key)[self.index] = val
 
+    @property
+    def text_color(self):
+        if self._text_color is None:
+            return (0,0,0)
+        return self._text_color
+
+    @text_color.setter
+    def text_color(self, value):
+        self._text_color = value
 
     @property
     def text_surface(self):
@@ -333,7 +343,7 @@ class Textfeld(Rectangular_object):
             wert = "{0:.3f}".format(wert)
 
         self.text = str(wert)
-        self._text_surface = self.parent.myfont.render(self.text, False, (0, 0, 0))
+        self._text_surface = self.parent.myfont.render(self.text, False, self.text_color)
         return self._text_surface
 
     def update(self):
@@ -350,9 +360,9 @@ class ScrollTextfeld(Textfeld):
     def click(self):
         if not self.mouseover:
             return
-        if self.event.button == 4:
+        if self.event.button == 4:   ### Scroll wheel up
             self.increase()
-        elif self.event.button == 5:
+        elif self.event.button == 5:  ### Scroll wheel down
             self.decrease()
         else:
             return
@@ -362,7 +372,7 @@ class ScrollTextfeld(Textfeld):
     def keydown(self):
         if not self.mouseover:
             return
-        if self.event.key ==pygame.K_UP:
+        if self.event.key == pygame.K_UP:
             self.increase()
         elif self.event.key == pygame.K_DOWN:
             self.decrease()
