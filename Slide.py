@@ -126,20 +126,37 @@ class Presenter(myGUI):
     def setup_buttons(self):
         NextButton(self, self.size -(100, 50), (100, 50), "NEXT", command=lambda: self.next)
 
+    def keydown(self):
+        super().keydown()
+        if self.event.key == pygame.K_LEFT:
+            self.last
+        elif self.event.key == pygame.K_RIGHT:
+            self.next
+
+    @property
+    def last(self):
+        if self.num_slide == -1:
+            self.next
+            return
+        if self.active_slide is not None:
+            self.active_slide.removefromGUI()
+            self.active_slide = None
+            self.num_slide -= 1 if self.num_slide else 0
+        self.slides[self.num_slide]()
+
     @property
     def next(self):
-        if self.active_slide is None: ###load new slide
-            self.active_slide = self.slides[self.num_slide]()
+        if self.active_slide is None:  ###load new slide
             self.num_slide += 1
             if self.num_slide > len(self.slides) - 1:
                 self.num_slide = 0
+            self.active_slide = self.slides[self.num_slide]()
             return
         if self.active_slide.next:
             return
         self.active_slide.removefromGUI()
         self.active_slide = None
         self.next
-
 
 if __name__ == "__main__":
     Presenter().run()

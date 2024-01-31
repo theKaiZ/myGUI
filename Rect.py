@@ -296,9 +296,10 @@ class Button(Rectangular_object):
 class Textfeld(Rectangular_object):
     _text_surface = None
 
-    def __init__(self, parent, pos, size, value):
+    def __init__(self, parent, pos, size, key, **kwargs):
         super().__init__(parent=parent, pos=pos, size=size)
-        self.value = value
+        self.key = key
+        self.index = kwargs.get("index")
 
     def draw(self):
         if not self.visible:
@@ -310,12 +311,27 @@ class Textfeld(Rectangular_object):
                           self.pos[1] + self.size[1] / 2 - self.text_surface.get_height() / 2))
 
     @property
+    def value(self):
+        if self.index is None:
+            return getattr(self.parent, self.key)
+        return getattr(self.parent,self.key)[self.index]
+
+    @value.setter
+    def value(self, val):
+        if self.index is None:
+            setattr(self.parent, self.key, val)
+            return
+        getattr(self.parent, self.key)[self.index] = val
+
+
+    @property
     def text_surface(self):
         if self._text_surface is not None:
             return self._text_surface
-        wert = getattr(self.parent, self.value)
-        if isinstance(wert, float):
+        wert = self.value
+        if isinstance(wert, float) or isinstance(wert, np.float32):
             wert = "{0:.3f}".format(wert)
+
         self.text = str(wert)
         self._text_surface = self.parent.myfont.render(self.text, False, (0, 0, 0))
         return self._text_surface
@@ -325,35 +341,55 @@ class Textfeld(Rectangular_object):
 
 
 class ScrollTextfeld(Textfeld):
-    def __init__(self, parent, pos, size, value, change_value, limits=None, operator="+"):
-        super().__init__(parent=parent, pos=pos, size=size, value=value)
+    def __init__(self, parent, pos, size, key, change_value, limits=None, operator="+", **kwargs):
+        super().__init__(parent=parent, pos=pos, size=size, key=key, **kwargs)
         self.change_value = change_value
         self.limits = limits
         self.operator = operator
 
     def click(self):
-        if self.mouseover:
-            self.scroll_add()
-
-    def scroll_add(self):
-        old_value = getattr(self.parent, self.value)
-        if self.parent.event.button == 4:
-            if self.operator == "+":
-                new_value = old_value + self.change_value
-            elif self.operator == "*":
-                new_value = old_value * self.change_value
-        elif self.parent.event.button == 5:
-            if self.operator == "+":
-                new_value = old_value - self.change_value
-            elif self.operator == "*":
-                new_value = old_value / self.change_value
+        if not self.mouseover:
+            return
+        if self.event.button == 4:
+            self.increase()
+        elif self.event.button == 5:
+            self.decrease()
         else:
             return
+        self._text_surface = None
+        self.parent.toggle_update = True
+
+    def keydown(self):
+        if not self.mouseover:
+            return
+        if self.event.key ==pygame.K_UP:
+            self.increase()
+        elif self.event.key == pygame.K_DOWN:
+            self.decrease()
+        else:
+            return
+        self._text_surface = None
+        self.parent.toggle_update = True
+
+
+    def increase(self):
+        if self.operator == "+":
+            new_value = self.value + self.change_value
+        elif self.operator == "*":
+            new_value = self.value * self.change_value
+        if self.limits is not None:
+            if new_value > self.limits[1]:
+                new_value = self.limits[1]
+        self.value = new_value
+
+    def decrease(self):
+        if self.operator == "+":
+            new_value = self.value - self.change_value
+        elif self.operator == "*":
+            new_value = self.value / self.change_value
         if self.limits is not None:
             if new_value < self.limits[0]:
                 new_value = self.limits[0]
-            if new_value > self.limits[1]:
-                new_value = self.limits[1]
-        setattr(self.parent, self.value, new_value)
-        self._text_surface = None
-        self.parent.toggle_update = True
+        self.value = new_value
+
+

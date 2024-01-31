@@ -10,20 +10,20 @@ def add(obj, var, val):
 class myGUI():
     timestamp = 0
     FPS = 25
-    pos = None
     running = True
     drawables = []
     clickables = []
     updateables = []
-    keypressables = []   ####todo find a better name for that
+    keypressables = []  ####todo find a better name for that
     rand = 0.3
     keyboard = {}
     mouse = {}
     toggle_update = False
-    pos = np.array([0,0])
-    size = np.array([1800,900])
+    pos = np.array([0, 0])
+    size = np.array([1800, 900])
     mode = pygame.locals.DOUBLEBUF
-    color=(255,255,255)
+    color = (255, 255, 255)
+
     def __init__(self):
         pygame.init()
         pygame.display.set_mode(self.size, self.mode)
@@ -42,7 +42,7 @@ class myGUI():
         self.test1 = 1
         self.test2 = 100
         ### only for inheritance
-        pass
+        self.test3 = np.array([1,2,3])
 
     def click(self):
         for obj in self.clickables:
@@ -65,9 +65,12 @@ class myGUI():
             Button(self, (100, 100 + 50 * i), (50, 50), "Test", command=lambda x=i: print(f"Hallo {x}"))
         Textfeld(self, (400, 100), (100, 100), "rand")
         Button(self, (400, 200), (50, 50), "+", command=lambda: add(self, "rand", 0.1))
-        ScrollTextfeld(self, (500,200), (50,50), "test1", 1, limits=[1,100],operator="+")
-        ScrollTextfeld(self, (500,250), (50,50), "test2", 1.1, limits=[1,100],operator="*")
-        Button(self, (500,500), (100,100), "print", command=lambda:self.print())
+        ScrollTextfeld(self, (500, 200), (50, 50), "test1", 1, limits=[1, 100], operator="+")
+        ScrollTextfeld(self, (500, 250), (50, 50), "test2", 1.1, limits=[1, 100], operator="*")
+        Button(self, (500, 500), (100, 100), "print", command=lambda: self.print())
+
+        ScrollTextfeld(self, (0,0), (100,100), "test3", change_value=1, limits=[1,10], operator="+", index=0)
+
     def run(self):
         while self.mainloop():
             pass
@@ -76,6 +79,7 @@ class myGUI():
 
     def exit_game(self):
         pass
+
     @property
     def mouse_pos(self):
         ### todo find out if it is worth to store the information
@@ -107,7 +111,7 @@ class myGUI():
             elif event.type == pygame.MOUSEBUTTONUP:
                 self.mouse[event.button] = False
 
-        if time() - self.timestamp > 1/self.FPS:
+        if time() - self.timestamp > 1 / self.FPS:
             self.timestamp = time()
             self.background()
             self.draw()
@@ -117,10 +121,11 @@ class myGUI():
         return True
 
     def print(self):
-        print("Drawables",self.drawables)
-        print("Clickables",self.clickables)
-        print("Updatteables",self.updateables)
-        print("Keypressables",self.keypressables)
+        print("Drawables", self.drawables)
+        print("Clickables", self.clickables)
+        print("Updatteables", self.updateables)
+        print("Keypressables", self.keypressables)
+
 
 def main():
     myGUI().run()
