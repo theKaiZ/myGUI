@@ -167,6 +167,10 @@ class Plot_object(Rectangular_object):
             return
         self.screen.blit(self.surface, self.pos)
 
+    def removefromGUI(self):
+        super().removefromGUI()
+        plt.close(self.fig)
+
 
 class RectImage(Rectangular_object):
     def __init__(self, parent, pos, image, **kwargs):
