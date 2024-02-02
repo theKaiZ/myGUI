@@ -238,7 +238,7 @@ class ImgOnLoad():
 
 
 class VideoRect(Rectangular_object):
-    index = 0
+    _index = 0
 
     def __init__(self, parent, folder, **kwargs):
         self.images = [ImgOnLoad(join(folder, image), **kwargs) for image in sorted(listdir(folder))]
@@ -246,18 +246,30 @@ class VideoRect(Rectangular_object):
         self.border = kwargs.get("border") if kwargs.get("border") is not None else True
         self.loop = kwargs.get("loop") if kwargs.get("loop") is not None else False
 
+    @property
+    def index(self):
+        return self._index
+
+    @index.setter
+    def index(self, value):
+        n_images = len(self.images)
+        if value <0 and self.loop:
+            self._index = n_images - value
+        if value >= n_images: 
+            if self.loop:
+                self._index = value % n_images
+        else:
+            self._index = value
+
+
     def draw(self):
         if not self.visible:
             return
-
         self.screen.blit(self.images[self.index].img, self.pos)
-        if self.index < len(self.images) - 1:
-            self.index += 1
-        elif self.index == len(self.images) - 1 and self.loop:
-            self.index = 0
-
-        if self.border is not None:
-            pygame.draw.rect(self.screen, (255, 255, 255), (self.pos[0], self.pos[1], self.size[0], self.size[1]),
+        self.index += 1
+        if not self.border:
+            return
+        pygame.draw.rect(self.screen, (255, 255, 255), (self.pos[0], self.pos[1], self.size[0], self.size[1]),
                              width=1)
 
 
@@ -268,7 +280,6 @@ class Rect_with_text(Rectangular_object):
     def __init__(self, parent, pos, size, text, **kwargs):
         super().__init__(parent=parent, pos=pos, size=size, **kwargs)
         self.text = text
-        self.command = kwargs.get("command")
         self.text_color = kwargs.get("text_color") or (0, 0, 0)
         self.text_size = kwargs.get("text_size") or 15
 
@@ -297,6 +308,7 @@ class Button(Rect_with_text):
     active = False
 
     def __init__(self, parent, pos, size, text, **kwargs):
+        self.command = kwargs.pop("command")
         super(Button, self).__init__(parent=parent, pos=pos, size=size, text=text, **kwargs)
         self.panel = True if kwargs.get("panel") is None else kwargs.get("panel")
 
@@ -323,7 +335,7 @@ class Button(Rect_with_text):
 class Textfeld(Rect_with_text):
 
     def __init__(self, parent, pos, size, key, **kwargs):
-        super().__init__(parent=parent, pos=pos, size=size)
+        super().__init__(parent=parent, pos=pos, size=size, text="")
         self.key = key
         self.index = kwargs.get("index")
         self.text_color = kwargs.get("text_color")
