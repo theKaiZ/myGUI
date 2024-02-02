@@ -47,7 +47,11 @@ class Slide(Rect):
 
     @property
     def myfont(self):
-        return self.parent.myfont
+        return (self.parent.myfont)
+
+    @property
+    def myfonts(self):
+        return self.parent.myfonts
 
     @property
     def mouse_pos(self):
@@ -124,7 +128,7 @@ class Presenter(myGUI):
                        lambda: S3(self)]
 
     def setup_buttons(self):
-        NextButton(self, self.size -(100, 50), (100, 50), "NEXT", command=lambda: self.next)
+        NextButton(self, self.size -(100, 50), (100, 50), "NEXT", command=lambda: self.next, text_size=20)
 
     def keydown(self):
         super().keydown()

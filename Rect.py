@@ -261,22 +261,45 @@ class VideoRect(Rectangular_object):
                              width=1)
 
 
-class Button(Rectangular_object):
-    active = False
+class Rect_with_text(Rectangular_object):
     _text_surface = None
+    _text_color = None
 
     def __init__(self, parent, pos, size, text, **kwargs):
-        super(Button, self).__init__(parent=parent, pos=pos, size=size, **kwargs)
+        super().__init__(parent=parent, pos=pos, size=size, **kwargs)
         self.text = text
         self.command = kwargs.get("command")
         self.text_color = kwargs.get("text_color") or (0, 0, 0)
-        self.panel = True if kwargs.get("panel") is None else kwargs.get("panel")
+        self.text_size = kwargs.get("text_size") or 15
+
+    @property
+    def font(self):
+        return self.parent.myfonts[self.text_size]
 
     @property
     def text_surface(self):
         if self._text_surface is None:
-            self._text_surface = self.parent.myfont.render(self.text, False, self.text_color)
+            self._text_surface = self.font.render(self.text, False, self.text_color)
         return self._text_surface
+
+    @property
+    def text_color(self):
+        if self._text_color is None:
+            return (0,0,0)
+        return self._text_color
+
+    @text_color.setter
+    def text_color(self, value):
+        self._text_color = value
+
+
+class Button(Rect_with_text):
+    active = False
+
+    def __init__(self, parent, pos, size, text, **kwargs):
+        super(Button, self).__init__(parent=parent, pos=pos, size=size, text=text, **kwargs)
+        self.panel = True if kwargs.get("panel") is None else kwargs.get("panel")
+
 
     def draw(self):
         if not self.visible:
@@ -297,9 +320,8 @@ class Button(Rectangular_object):
             self.command()
 
 
-class Textfeld(Rectangular_object):
-    _text_surface = None
-    _text_color = None
+class Textfeld(Rect_with_text):
+
     def __init__(self, parent, pos, size, key, **kwargs):
         super().__init__(parent=parent, pos=pos, size=size)
         self.key = key
@@ -328,15 +350,7 @@ class Textfeld(Rectangular_object):
             return
         getattr(self.parent, self.key)[self.index] = val
 
-    @property
-    def text_color(self):
-        if self._text_color is None:
-            return (0,0,0)
-        return self._text_color
 
-    @text_color.setter
-    def text_color(self, value):
-        self._text_color = value
 
     @property
     def text_surface(self):

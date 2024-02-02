@@ -28,6 +28,9 @@ class myGUI():
         pygame.init()
         pygame.display.set_mode(self.size, self.mode)
         self.myfont = pygame.font.SysFont("Comic Sans MS", 15 if 'win' in platform else 30)
+        self.myfonts = {}
+        for i in [10, 12, 15, 20, 30, 40]:
+            self.myfonts[i] = pygame.font.SysFont("Arial", i)
         self.screen = pygame.display.get_surface()
         self.plots = []
         self.manual_init()
@@ -42,7 +45,7 @@ class myGUI():
         self.test1 = 1
         self.test2 = 100
         ### only for inheritance
-        self.test3 = np.array([1,2,3])
+        self.test3 = np.array([1, 2, 3])
 
     def click(self):
         for obj in self.clickables:
@@ -69,7 +72,7 @@ class myGUI():
         ScrollTextfeld(self, (500, 250), (50, 50), "test2", 1.1, limits=[1, 100], operator="*")
         Button(self, (500, 500), (100, 100), "print", command=lambda: self.print())
 
-        ScrollTextfeld(self, (0,0), (100,100), "test3", change_value=1, limits=[1,10], operator="+", index=0)
+        ScrollTextfeld(self, (0, 0), (100, 100), "test3", change_value=1, limits=[1, 10], operator="+", index=0)
 
     def run(self):
         while self.mainloop():
