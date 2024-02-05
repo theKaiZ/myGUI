@@ -5,35 +5,44 @@ import pygame
 from numba import njit, prange
 
 class golpanel(Rectangular_object):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.dx = self.size[0] // self.cells.shape[0]
+        self.dy = self.size[1] // self.cells.shape[1]
+        self.xmax = self.cells.shape[0] * self.dx
+        self.ymax = self.cells.shape[1] * self.dy
+        self.grid=False
+
     @property
     def cells(self):
         return self.parent.cells
 
-    def draw(self):
-        ### draw grid
-        dx = self.size[0] // self.cells.shape[0]
-        dy = self.size[1] // self.cells.shape[1]
-        xmax = self.cells.shape[0] * dx
-        ymax = self.cells.shape[1] * dy
+    def draw_grid(self):
+        for x in range(self.cells.shape[0] + 1):
+            for y in range(self.cells.shape[1] + 1):
+                pygame.draw.line(self.screen, (255, 255, 255), self.pos + (x * self.dx, 0),
+                                 self.pos + (x * self.dx, self.ymax))
+                pygame.draw.line(self.screen, (255, 255, 255), self.pos + (0, y * self.dy),
+                                 self.pos + (self.xmax, y * self.dy))
 
-        if self.parent.draw_grid:
-            for x in range(self.cells.shape[0] + 1):
-                for y in range(self.cells.shape[1] + 1):
-                    pygame.draw.line(self.screen, (255, 255, 255), self.pos + (x * dx, 0),
-                                     self.pos + (x * dx, ymax))
-                    pygame.draw.line(self.screen, (255, 255, 255), self.pos + (0, y * dy),
-                                     self.pos + (xmax, y * dy))
-        else:
-            pygame.draw.line(self.screen, (255,255,255), self.pos, self.pos+(xmax,0))
-            pygame.draw.line(self.screen, (255,255,255), self.pos, self.pos+(0,ymax))
-            pygame.draw.line(self.screen, (255,255,255), self.pos+(0,ymax), self.pos+(xmax,ymax))
-            pygame.draw.line(self.screen, (255,255,255), self.pos+(xmax,0), self.pos+(xmax,ymax))
+    def draw_rect(self):
+        pygame.draw.line(self.screen, (255,255,255), self.pos, self.pos+(self.xmax,0))
+        pygame.draw.line(self.screen, (255,255,255), self.pos, self.pos+(0,self.ymax))
+        pygame.draw.line(self.screen, (255,255,255), self.pos+(0,self.ymax), self.pos+(self.xmax,self.ymax))
+        pygame.draw.line(self.screen, (255,255,255), self.pos+(self.xmax,0), self.pos+(self.xmax,self.ymax))
 
+    def draw_cells(self):
         for x in range(self.cells.shape[0]):
             for y in range(self.cells.shape[1]):
                 if self.cells[x, y]:
-                    pygame.draw.rect(self.screen, (255, 255, 255), (self.pos[0] + x * dx, self.pos[1] + y * dy, dx, dy))
+                    pygame.draw.rect(self.screen, (255, 255, 255), (self.pos[0] + x * self.dx, self.pos[1] + y * self.dy, self.dx, self.dy))
 
+    def draw(self):
+        if self.grid:
+            self.draw_grid()
+        else:
+            self.draw_rect()
+        self.draw_cells()
 
 @njit(cache=True, parallel=True)
 def next_generation(cells, newgen):
@@ -66,7 +75,7 @@ class GoLSlide(Slide):
         self.line = ax.plot(range(1))[0]
         self.line2 = ax.plot(range(1),color="black", linestyle="dotted")[0]
         self.cells = np.zeros((s, s), dtype=int)
-        golpanel(self, pos=(10, 50), size=(600, 600))
+        golpanel(parent=self, pos=(10, 50), size=(600, 600))
         self.fill_random()
         self.parent.toggle_update=True
     @property

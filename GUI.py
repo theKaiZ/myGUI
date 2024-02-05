@@ -1,6 +1,7 @@
 from myGUI.Rect import *
 from time import time
 import pygame.locals
+from sys import platform
 
 
 def add(obj, var, val):

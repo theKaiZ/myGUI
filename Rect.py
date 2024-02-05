@@ -1,16 +1,12 @@
 import matplotlib.pyplot as plt
-import pylab
 import matplotlib
 from os import listdir
 from os.path import join
-
 matplotlib.use("Agg")
 import matplotlib.backends.backend_agg as agg
-
 import pygame
 import numpy as np
 from PIL import Image
-from sys import platform
 
 
 class Rect():
@@ -179,7 +175,7 @@ class RectImage(Rectangular_object):
         mode = image.mode
         data = image.tobytes()
         self.image = pygame.image.frombuffer(data, size, mode)
-        super(RectImage, self).__init__(parent=parent, pos=pos, size=size)
+        super(RectImage, self).__init__(parent=parent, pos=pos, size=size, **kwargs)
 
     def draw(self):
         self.screen.blit(self.image, self.pos)
@@ -255,7 +251,7 @@ class VideoRect(Rectangular_object):
         n_images = len(self.images)
         if value <0 and self.loop:
             self._index = n_images - value
-        if value >= n_images: 
+        if value >= n_images:
             if self.loop:
                 self._index = value % n_images
         else:
