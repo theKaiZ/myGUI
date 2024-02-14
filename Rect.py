@@ -17,6 +17,7 @@ class BaseObject():
         self.pos=pos
         self.color= kwargs.get("color") if kwargs.get("color") is not None else (0,0,0)
         self.add2GUI()
+        self.visible=kwargs.get("visible")
 
     def add2GUI(self):
         if hasattr(self, "click"):
@@ -79,6 +80,8 @@ class Line(BaseObject):
         return self._pos2 + self.parent.pos
 
     def draw(self):
+        if not self.visible:
+            return
         pygame.draw.line(self.screen, color=self.color, start_pos=self.pos, end_pos=self.pos2, width=2)
 
 class Rect(BaseObject):
@@ -88,12 +91,13 @@ class Rect(BaseObject):
     _color = None
     _offset = None
 
-    def __init__(self, parent, **kwargs):
-        self.parent = parent
-        self.add2GUI()
-        self.pos = kwargs.get("pos") if kwargs.get("pos") is not None else np.array([0, 0])
+    def __init__(self, parent, pos=[0,0], **kwargs):
+        super().__init__(parent=parent, pos=pos, **kwargs)
+        #self.pos = kwargs.get("pos") if kwargs.get("pos") is not None else np.array([0, 0])
         self.size = kwargs.get("size")
         self.color = kwargs.get("color") if kwargs.get("color") is not None else np.array([150, 150, 150])
+        self.filled = kwargs.get("filled")
+        self.width=kwargs.get("width") or 1
 
 
 
@@ -108,15 +112,11 @@ class Rect(BaseObject):
         else:
             self._size = np.array(value)
 
-
-
-
     def draw(self):
+        if not self.visible:
+            return
         pygame.draw.rect(self.screen, self.color,
-                         (self.pos[0], self.pos[1], self.size[0], self.size[1]), 0)
-
-
-
+                         (self.pos[0], self.pos[1], self.size[0], self.size[1]), self.width if self.filled is None else 0)
 
     @property
     def corners(self):
@@ -214,8 +214,9 @@ class RectImage(Rectangular_object):
         data = image.tobytes()
         self.image = pygame.image.frombuffer(data, size, mode)
         super(RectImage, self).__init__(parent=parent, pos=pos, size=size, **kwargs)
-
     def draw(self):
+        if not self.visible:
+            return
         self.screen.blit(self.image, self.pos)
 
 

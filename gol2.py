@@ -102,7 +102,7 @@ class gol2slide(GoLSlide):
         self.line.set_xdata(z)
         self.line.set_ydata(g)
         self.plot._surface = None
-        #self.fill_random()
+        self.fill_random()
 
     @property
     def zl(self):
