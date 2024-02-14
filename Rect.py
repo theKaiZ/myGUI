@@ -319,6 +319,7 @@ class Rect_with_text(Rectangular_object):
         self.text_size = kwargs.get("text_size") or 15
         self.underline = kwargs.get("underline")
         self.bold=kwargs.get("bold")
+        self.panel = kwargs.get("panel") if kwargs.get("panel") is not None else True
 
     @property
     def font(self):
@@ -352,6 +353,13 @@ class Rect_with_text(Rectangular_object):
     @text_color.setter
     def text_color(self, value):
         self._text_color = value
+
+    def draw(self):
+        if self.panel:
+            super().draw()
+        self.screen.blit(self.text_surface,
+                         (self.pos[0] + self.size[0] / 2 - self.text_surface.get_width() / 2,
+                          self.pos[1] + self.size[1] / 2 - self.text_surface.get_height() / 2))
 
 
 class Button(Rect_with_text):

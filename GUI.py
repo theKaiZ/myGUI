@@ -30,7 +30,7 @@ class myGUI():
         pygame.display.set_mode(self.size, self.mode)
         self.myfont = pygame.font.SysFont("Comic Sans MS", 15 if 'win' in platform else 30)
         self.myfonts = {}
-        for i in [10, 12, 15, 20,25, 30, 40]:
+        for i in [10, 12, 15, 20,25, 30, 40,50,60,70,80,90]:
             self.myfonts[i] = pygame.font.SysFont("Arial", size=i)
         self.screen = pygame.display.get_surface()
         self.plots = []
