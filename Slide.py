@@ -12,9 +12,12 @@ class Slide(Rect):
         self.updateables = []
         self.clickables = []
         self.keypressables = []
+        if hasattr(self.parent, "active_slide"):
+            if self.parent.active_slide is not None:
+                self.parent.active_slide.removefromGUI()
         parent.active_slide = self
-        self.pos = parent.pos+ kwargs.get("pos") if kwargs.get("pos") else [0,80]
-        self.size = kwargs.get("size") if kwargs.get("size") else  parent.size-[0,80+50]
+        self.pos = parent.pos+ kwargs.get("pos") if kwargs.get("pos") else [0,0]
+        self.size = kwargs.get("size") if kwargs.get("size") else  parent.size
         self.borders = kwargs.get("borders") or False
         self.manual_init()
 

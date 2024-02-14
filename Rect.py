@@ -8,45 +8,15 @@ import pygame
 import numpy as np
 from PIL import Image
 
-
-class Rect():
-    _corners = None
-    _pos = None
-    _size = None
+class BaseObject():
     _color = None
     _offset = None
 
-    def __init__(self, parent, **kwargs):
+    def __init__(self, parent, pos, **kwargs):
         self.parent = parent
+        self.pos=pos
+        self.color= kwargs.get("color") if kwargs.get("color") is not None else (0,0,0)
         self.add2GUI()
-        self.pos = kwargs.get("pos") if kwargs.get("pos") is not None else np.array([0, 0])
-        self.size = kwargs.get("size")
-        self.color = kwargs.get("color") if kwargs.get("color") is not None else np.array([150, 150, 150])
-
-    @property
-    def pos(self):
-        if self._offset is not None:
-            return self._pos + self.parent.pos + self._offset
-        return self._pos + self.parent.pos
-
-    @pos.setter
-    def pos(self, value):
-        self._pos = np.array(value)
-
-    @property
-    def size(self):
-        return self._size
-
-    @size.setter
-    def size(self, value):
-        if value is None:
-            self._size = self.parent.size
-        else:
-            self._size = np.array(value)
-
-    @property
-    def screen(self):
-        return self.parent.screen
 
     def add2GUI(self):
         if hasattr(self, "click"):
@@ -68,9 +38,19 @@ class Rect():
         if hasattr(self, "keydown"):
             self.parent.keypressables.remove(self)
 
-    def draw(self):
-        pygame.draw.rect(self.screen, self.color,
-                         (self.pos[0], self.pos[1], self.size[0], self.size[1]), 0)
+    @property
+    def pos(self):
+        if self._offset is not None:
+            return self._pos + self.parent.pos + self._offset
+        return self._pos + self.parent.pos
+
+    @pos.setter
+    def pos(self, value):
+        self._pos = np.array(value)
+
+    @property
+    def screen(self):
+        return self.parent.screen
 
     @property
     def color(self):
@@ -84,6 +64,58 @@ class Rect():
         if np.isnan(value).sum():
             value[np.isnan(value)]=0
         self._color = value
+
+
+class Line(BaseObject):
+    _pos2 = None
+    def __init__(self, parent, pos, pos2, **kwargs):
+        super().__init__(parent=parent, pos=pos)
+        self._pos2 = pos2
+
+    @property
+    def pos2(self):
+        if self._offset is not None:
+            return self._pos2 + self.parent.pos + self._offset
+        return self._pos2 + self.parent.pos
+
+    def draw(self):
+        pygame.draw.line(self.screen, color=self.color, start_pos=self.pos, end_pos=self.pos2, width=2)
+
+class Rect(BaseObject):
+    _corners = None
+    _pos = None
+    _size = None
+    _color = None
+    _offset = None
+
+    def __init__(self, parent, **kwargs):
+        self.parent = parent
+        self.add2GUI()
+        self.pos = kwargs.get("pos") if kwargs.get("pos") is not None else np.array([0, 0])
+        self.size = kwargs.get("size")
+        self.color = kwargs.get("color") if kwargs.get("color") is not None else np.array([150, 150, 150])
+
+
+
+    @property
+    def size(self):
+        return self._size
+
+    @size.setter
+    def size(self, value):
+        if value is None:
+            self._size = self.parent.size
+        else:
+            self._size = np.array(value)
+
+
+
+
+    def draw(self):
+        pygame.draw.rect(self.screen, self.color,
+                         (self.pos[0], self.pos[1], self.size[0], self.size[1]), 0)
+
+
 
 
     @property
@@ -282,17 +314,33 @@ class Rect_with_text(Rectangular_object):
     def __init__(self, parent, pos, size, text, **kwargs):
         super().__init__(parent=parent, pos=pos, size=size, **kwargs)
         self.text = text
-        self.text_color = kwargs.get("text_color") or (0, 0, 0)
+        self.rotate_text = kwargs.get("rotate_text")
+        self.text_color = kwargs.get("text_color") if kwargs.get("text_color") is not None else (0, 0, 0)
         self.text_size = kwargs.get("text_size") or 15
+        self.underline = kwargs.get("underline")
+        self.bold=kwargs.get("bold")
 
     @property
     def font(self):
         return self.parent.myfonts[self.text_size]
 
+    def render_surface(self):
+        if self.underline:
+            self.font.set_underline(True)
+        if self.bold:
+            self.font.set_bold(True)
+        render = self.font.render(self.text, False, self.text_color)
+        self.font.set_underline(False)
+        self.font.set_bold(False)
+        if self.rotate_text is not None:
+            render = pygame.transform.rotate(render, self.rotate_text)
+        return render
+
+
     @property
     def text_surface(self):
         if self._text_surface is None:
-            self._text_surface = self.font.render(self.text, False, self.text_color)
+            self._text_surface = self.render_surface()
         return self._text_surface
 
     @property
@@ -324,12 +372,12 @@ class Button(Rect_with_text):
         self.screen.blit(self.text_surface,
                          (self.pos[0] + self.size[0] / 2 - self.text_surface.get_width() / 2,
                           self.pos[1] + self.size[1] / 2 - self.text_surface.get_height() / 2))
-
     def click(self):
         if self.mouseover and self.parent.event.button == 1:
             self.action()
 
     def action(self):
+        print("Click the button",self)
         if self.command is not None:
             self.command()
 
@@ -337,10 +385,11 @@ class Button(Rect_with_text):
 class Textfeld(Rect_with_text):
 
     def __init__(self, parent, pos, size, key, **kwargs):
-        super().__init__(parent=parent, pos=pos, size=size, text="")
+        super().__init__(parent=parent, pos=pos, size=size, text="",**kwargs)
         self.key = key
         self.index = kwargs.get("index")
         self.text_color = kwargs.get("text_color")
+        self.background = kwargs.get("background") if kwargs.get("background") is not None else True
 
     def draw(self):
         if not self.visible:
@@ -375,7 +424,8 @@ class Textfeld(Rect_with_text):
             wert = "{0:.3f}".format(wert)
 
         self.text = str(wert)
-        self._text_surface = self.parent.myfont.render(self.text, False, self.text_color)
+        self._text_surface = self.render_surface()
+
         return self._text_surface
 
     def update(self):
