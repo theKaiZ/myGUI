@@ -15,6 +15,7 @@ class Slide(Rect):
         parent.active_slide = self
         self.pos = parent.pos+ kwargs.get("pos") if kwargs.get("pos") else [0,80]
         self.size = kwargs.get("size") if kwargs.get("size") else  parent.size-[0,80+50]
+        self.borders = kwargs.get("borders") or False
         self.manual_init()
 
     def manual_init(self):
@@ -71,7 +72,8 @@ class Slide(Rect):
             obj.update()
 
     def draw(self):
-        pygame.draw.rect(self.screen, (200, 200, 200), (self.pos[0], self.pos[1], self.size[0], self.size[1]), 1)
+        if self.borders:
+            pygame.draw.rect(self.screen, (200, 200, 200), (self.pos[0], self.pos[1], self.size[0], self.size[1]), 1)
         for obj in self.drawables:
             obj.draw()
 

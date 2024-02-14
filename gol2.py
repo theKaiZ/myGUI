@@ -37,7 +37,7 @@ def gauss(zl=-14, zr=-3, zn=200, z0=-10, sigma=2, d=0):
     """
     z = np.linspace(zl, zr, zn)
     assert (z < z0).sum() and (z > z0).sum(), f"z0 must be between {z[0]} and {z[-1]}, not {z0}"
-    g = gauss_jit(z=z, z0=z0, sigma=sigma, d=d)
+    g = gauss_jit(z=z, z0=z0, sigma=sigma, d=d) + gauss_jit(z=z, z0 = z0+25, sigma=sigma*1.5, d=d)
     return z, g / g.max()
 
 
@@ -102,7 +102,7 @@ class gol2slide(GoLSlide):
         self.line.set_xdata(z)
         self.line.set_ydata(g)
         self.plot._surface = None
-        self.fill_random()
+        #self.fill_random()
 
     @property
     def zl(self):

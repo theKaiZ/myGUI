@@ -78,7 +78,13 @@ class Rect():
 
     @color.setter
     def color(self, value):
-        self._color = np.array(value)
+        if isinstance(value, float):
+            value = np.array([value,value,value])
+        value = np.array(value)
+        if np.isnan(value).sum():
+            value[np.isnan(value)]=0
+        self._color = value
+
 
     @property
     def corners(self):
@@ -304,7 +310,7 @@ class Button(Rect_with_text):
     active = False
 
     def __init__(self, parent, pos, size, text, **kwargs):
-        self.command = kwargs.pop("command")
+        self.command = kwargs.get("command")
         super(Button, self).__init__(parent=parent, pos=pos, size=size, text=text, **kwargs)
         self.panel = True if kwargs.get("panel") is None else kwargs.get("panel")
 
