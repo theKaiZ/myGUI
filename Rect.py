@@ -11,12 +11,14 @@ from PIL import Image
 class BaseObject():
     _color = None
     _offset = None
+    _force = None ###move per frame
 
     def __init__(self, parent, pos, **kwargs):
         self.parent = parent
         self.pos=pos
         self.color= kwargs.get("color") if kwargs.get("color") is not None else (0,0,0)
         self.add2GUI()
+        self.visible = kwargs.get("visible") if kwargs.get("visible") is not None else True
         self.visible=kwargs.get("visible")
 
     def add2GUI(self):
@@ -28,6 +30,14 @@ class BaseObject():
             self.parent.updateables.append(self)
         if hasattr(self, "keydown"):
             self.parent.keypressables.append(self)
+
+    @property
+    def force(self):
+        return self._force
+
+    @force.setter
+    def force(self, value):
+        self._force = np.array(value)
 
     def removefromGUI(self):
         if hasattr(self, "draw"):
@@ -47,6 +57,8 @@ class BaseObject():
 
     @pos.setter
     def pos(self, value):
+        if value is None:
+            value = (0,0)
         self._pos = np.array(value)
 
     @property
@@ -70,7 +82,7 @@ class BaseObject():
 class Line(BaseObject):
     _pos2 = None
     def __init__(self, parent, pos, pos2, **kwargs):
-        super().__init__(parent=parent, pos=pos)
+        super().__init__(parent=parent, pos=pos, **kwargs)
         self._pos2 = pos2
 
     @property
@@ -84,6 +96,20 @@ class Line(BaseObject):
             return
         pygame.draw.line(self.screen, color=self.color, start_pos=self.pos, end_pos=self.pos2, width=2)
 
+class Circle(BaseObject):
+    def __init__(self, parent, pos, radius, **kwargs):
+        super().__init__(parent=parent, pos=pos, **kwargs)
+        self.radius = radius
+        self.filled = kwargs.get("filled") if kwargs.get("filled") is not None else False
+        self.width = kwargs.get("width") if kwargs.get("width") is not None else 1
+
+    def draw(self):
+        if not self.visible:
+            return
+        pygame.draw.circle(self.screen,color=self.color,center=self.pos, radius=self.radius, width = self.width if not self.filled else 0)
+        if self.force is not None:
+            self._pos += self.force
+
 class Rect(BaseObject):
     _corners = None
     _pos = None
@@ -91,8 +117,8 @@ class Rect(BaseObject):
     _color = None
     _offset = None
 
-    def __init__(self, parent, pos=[0,0], **kwargs):
-        super().__init__(parent=parent, pos=pos, **kwargs)
+    def __init__(self, parent,pos=None, **kwargs):
+        super().__init__(parent=parent,pos=pos,**kwargs)
         #self.pos = kwargs.get("pos") if kwargs.get("pos") is not None else np.array([0, 0])
         self.size = kwargs.get("size")
         self.color = kwargs.get("color") if kwargs.get("color") is not None else np.array([150, 150, 150])
@@ -112,11 +138,17 @@ class Rect(BaseObject):
         else:
             self._size = np.array(value)
 
+
+
+
     def draw(self):
         if not self.visible:
             return
         pygame.draw.rect(self.screen, self.color,
-                         (self.pos[0], self.pos[1], self.size[0], self.size[1]), self.width if self.filled is None else 0)
+                         (self.pos[0], self.pos[1], self.size[0], self.size[1]), 1)
+
+
+
 
     @property
     def corners(self):
@@ -164,9 +196,9 @@ class Plot_object(Rectangular_object):
     fig = None
     ax = None
 
-    def __init__(self, parent, pos, size, **kwargs):
+    def __init__(self, parent, **kwargs):
         ###todo update size
-        super(Plot_object, self).__init__(parent=parent, pos=pos, size=size, **kwargs)
+        super(Plot_object, self).__init__(parent=parent, **kwargs)
         self.setup()
 
     def setup(self):
@@ -214,16 +246,28 @@ class RectImage(Rectangular_object):
         data = image.tobytes()
         self.image = pygame.image.frombuffer(data, size, mode)
         super(RectImage, self).__init__(parent=parent, pos=pos, size=size, **kwargs)
+        self.scaling = kwargs.get("scaling")
+        self.rotation = kwargs.get("rotation")
+
     def draw(self):
         if not self.visible:
             return
-        self.screen.blit(self.image, self.pos)
+
+        img = self.image
+        if self.scaling is not None:
+            size = (int(self.size[0]*self.scaling), int(self.size[1]*self.scaling))
+            #self.screen.blit(pygame.transform.scale(self.image, size), self.pos)
+            #return
+            img = pygame.transform.scale(img, size)
+        if self.rotation is not None:
+            img = pygame.transform.rotate(img, self.rotation)
+        self.screen.blit(img, self.pos)
 
 
 class RectImageSeries(Rectangular_object):
     index = 0
 
-    def __init__(self, parent, pos, images):
+    def __init__(self, parent, pos, images, **kwargs):
         images = [Image.open(image) for image in images]
         size = images[0].size
         mode = images[0].mode
@@ -280,6 +324,8 @@ class VideoRect(Rectangular_object):
         super(VideoRect, self).__init__(parent=parent, size=self.images[0].size, **kwargs)
         self.border = kwargs.get("border") if kwargs.get("border") is not None else True
         self.loop = kwargs.get("loop") if kwargs.get("loop") is not None else False
+        self.color = kwargs.get("color") if kwargs.get("color") is not None else (0,0,0)
+        self.scaling =kwargs.get("scaling")
 
     @property
     def index(self):
@@ -300,20 +346,27 @@ class VideoRect(Rectangular_object):
     def draw(self):
         if not self.visible:
             return
-        self.screen.blit(self.images[self.index].img, self.pos)
+        if self.scaling is not None:
+            size = (int(self.size[0] * self.scaling), int(self.size[1] * self.scaling))
+            self.screen.blit(pygame.transform.scale(self.images[self.index].img,size), self.pos)
+        else:
+            self.screen.blit(self.images[self.index].img, self.pos)
         self.index += 1
         if not self.border:
             return
-        pygame.draw.rect(self.screen, (255, 255, 255), (self.pos[0], self.pos[1], self.size[0], self.size[1]),
+        pygame.draw.rect(self.screen, self.color, (self.pos[0], self.pos[1], self.size[0], self.size[1]),
                              width=1)
 
 
 class Rect_with_text(Rectangular_object):
     _text_surface = None
     _text_color = None
-
-    def __init__(self, parent, pos, size, text, **kwargs):
-        super().__init__(parent=parent, pos=pos, size=size, **kwargs)
+    _bold = False
+    _underline = False
+    def __init__(self, parent, pos, text, **kwargs):
+        if kwargs.get("size") is None:
+            kwargs["size"] = (0,0)
+        super().__init__(parent=parent, pos=pos, **kwargs)
         self.text = text
         self.rotate_text = kwargs.get("rotate_text")
         self.text_color = kwargs.get("text_color") if kwargs.get("text_color") is not None else (0, 0, 0)
@@ -321,6 +374,18 @@ class Rect_with_text(Rectangular_object):
         self.underline = kwargs.get("underline")
         self.bold=kwargs.get("bold")
         self.panel = kwargs.get("panel") if kwargs.get("panel") is not None else True
+
+    @property
+    def bold(self):
+        return self._bold
+    @bold.setter
+    def bold(self,value):
+        if value is None:
+            return
+        if value == self._bold:
+            return
+        self._bold = value
+        self._text_surface = None
 
     @property
     def font(self):
@@ -356,6 +421,8 @@ class Rect_with_text(Rectangular_object):
         self._text_color = value
 
     def draw(self):
+        if self.visible is False:
+            return
         if self.panel:
             super().draw()
         self.screen.blit(self.text_surface,
