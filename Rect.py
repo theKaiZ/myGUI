@@ -19,7 +19,6 @@ class BaseObject():
         self.color= kwargs.get("color") if kwargs.get("color") is not None else (0,0,0)
         self.add2GUI()
         self.visible = kwargs.get("visible") if kwargs.get("visible") is not None else True
-        self.visible=kwargs.get("visible")
 
     def add2GUI(self):
         if hasattr(self, "click"):
@@ -123,7 +122,7 @@ class Rect(BaseObject):
         self.size = kwargs.get("size")
         self.color = kwargs.get("color") if kwargs.get("color") is not None else np.array([150, 150, 150])
         self.filled = kwargs.get("filled")
-        self.width=kwargs.get("width") or 1
+        self.width=kwargs.get("width") or 0
 
 
 
@@ -145,7 +144,7 @@ class Rect(BaseObject):
         if not self.visible:
             return
         pygame.draw.rect(self.screen, self.color,
-                         (self.pos[0], self.pos[1], self.size[0], self.size[1]), 1)
+                         (self.pos[0], self.pos[1], self.size[0], self.size[1]), self.width)
 
 
 
