@@ -244,15 +244,21 @@ class RectImage(Rectangular_object):
         self.image = pygame.image.frombuffer(data, size, mode)
         super(RectImage, self).__init__(parent=parent, pos=pos, size=size, **kwargs)
         self.scaling = kwargs.get("scaling")
+        self.rotation = kwargs.get("rotation")
 
     def draw(self):
         if not self.visible:
             return
+
+        img = self.image
         if self.scaling is not None:
             size = (int(self.size[0]*self.scaling), int(self.size[1]*self.scaling))
-            self.screen.blit(pygame.transform.scale(self.image, size), self.pos)
-            return
-        self.screen.blit(self.image, self.pos)
+            #self.screen.blit(pygame.transform.scale(self.image, size), self.pos)
+            #return
+            img = pygame.transform.scale(img, size)
+        if self.rotation is not None:
+            img = pygame.transform.rotate(img, self.rotation)
+        self.screen.blit(img, self.pos)
 
 
 class RectImageSeries(Rectangular_object):
