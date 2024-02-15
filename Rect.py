@@ -17,6 +17,7 @@ class BaseObject():
         self.pos=pos
         self.color= kwargs.get("color") if kwargs.get("color") is not None else (0,0,0)
         self.add2GUI()
+        self.visible = kwargs.get("visible") if kwargs.get("visible") is not None else True
 
     def add2GUI(self):
         if hasattr(self, "click"):
@@ -46,6 +47,8 @@ class BaseObject():
 
     @pos.setter
     def pos(self, value):
+        if value is None:
+            value = (0,0)
         self._pos = np.array(value)
 
     @property
@@ -69,7 +72,7 @@ class BaseObject():
 class Line(BaseObject):
     _pos2 = None
     def __init__(self, parent, pos, pos2, **kwargs):
-        super().__init__(parent=parent, pos=pos)
+        super().__init__(parent=parent, pos=pos, **kwargs)
         self._pos2 = pos2
 
     @property
@@ -79,6 +82,8 @@ class Line(BaseObject):
         return self._pos2 + self.parent.pos
 
     def draw(self):
+        if not self.visible:
+            return
         pygame.draw.line(self.screen, color=self.color, start_pos=self.pos, end_pos=self.pos2, width=2)
 
 class Rect(BaseObject):
@@ -88,10 +93,9 @@ class Rect(BaseObject):
     _color = None
     _offset = None
 
-    def __init__(self, parent, **kwargs):
-        self.parent = parent
-        self.add2GUI()
-        self.pos = kwargs.get("pos") if kwargs.get("pos") is not None else np.array([0, 0])
+    def __init__(self, parent,pos=None, **kwargs):
+        super().__init__(parent=parent,pos=pos,**kwargs)
+        #self.pos = kwargs.get("pos") if kwargs.get("pos") is not None else np.array([0, 0])
         self.size = kwargs.get("size")
         self.color = kwargs.get("color") if kwargs.get("color") is not None else np.array([150, 150, 150])
 
@@ -112,8 +116,10 @@ class Rect(BaseObject):
 
 
     def draw(self):
+        if not self.visible:
+            return
         pygame.draw.rect(self.screen, self.color,
-                         (self.pos[0], self.pos[1], self.size[0], self.size[1]), 0)
+                         (self.pos[0], self.pos[1], self.size[0], self.size[1]), 1)
 
 
 
@@ -222,7 +228,7 @@ class RectImage(Rectangular_object):
 class RectImageSeries(Rectangular_object):
     index = 0
 
-    def __init__(self, parent, pos, images):
+    def __init__(self, parent, pos, images, **kwargs):
         images = [Image.open(image) for image in images]
         size = images[0].size
         mode = images[0].mode
@@ -279,7 +285,8 @@ class VideoRect(Rectangular_object):
         super(VideoRect, self).__init__(parent=parent, size=self.images[0].size, **kwargs)
         self.border = kwargs.get("border") if kwargs.get("border") is not None else True
         self.loop = kwargs.get("loop") if kwargs.get("loop") is not None else False
-
+        self.color = kwargs.get("color") if kwargs.get("color") is not None else (0,0,0
+                                                                                  )
     @property
     def index(self):
         return self._index
@@ -303,7 +310,7 @@ class VideoRect(Rectangular_object):
         self.index += 1
         if not self.border:
             return
-        pygame.draw.rect(self.screen, (255, 255, 255), (self.pos[0], self.pos[1], self.size[0], self.size[1]),
+        pygame.draw.rect(self.screen, self.color, (self.pos[0], self.pos[1], self.size[0], self.size[1]),
                              width=1)
 
 
