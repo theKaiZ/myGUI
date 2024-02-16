@@ -150,7 +150,10 @@ class Presenter(myGUI):
         if self.active_slide is not None:
             self.active_slide.removefromGUI()
             self.active_slide = None
-            self.num_slide -= 1 if self.num_slide else 0
+            if  self.num_slide:
+                self.num_slide -= 1
+            else:
+                self.num_slide = len(self.slides)-1
         self.slides[self.num_slide]()
 
     @property

@@ -220,6 +220,8 @@ class Plot_object(Rectangular_object):
         if self._surface is not None:
             return self._surface
         canvas = agg.FigureCanvasAgg(self.fig)
+        #canvas.setStyleSheet("background-color:transparent;")
+
         canvas.draw()
         renderer = canvas.get_renderer()
         raw_data = renderer.tostring_rgb()
