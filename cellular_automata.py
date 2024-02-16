@@ -109,7 +109,7 @@ class CA_Presenter(Presenter):
     _num_p = 1
 
     def manual_init(self):
-        self.slides = [lambda: CA_Slide(self)]
+        self.slides = [lambda: CA_Slide(self, pos=(0,0), size=self.size-[0,80])]
 
     def setup_buttons(self):
         super().setup_buttons()

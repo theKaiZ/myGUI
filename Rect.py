@@ -198,7 +198,14 @@ class Plot_object(Rectangular_object):
     def __init__(self, parent, **kwargs):
         ###todo update size
         super(Plot_object, self).__init__(parent=parent, **kwargs)
+        ### todo I think about the possibility to pass an object to
+        self.remove_background = True if kwargs.get("remove_background") is None else kwargs.get("remove_background")
         self.setup()
+        self.manual_init()
+
+    def manual_init(self):
+        pass
+
 
     def setup(self):
         self.fig, self.ax = plt.subplots(1,1,figsize=self.size//100)
@@ -220,13 +227,14 @@ class Plot_object(Rectangular_object):
         if self._surface is not None:
             return self._surface
         canvas = agg.FigureCanvasAgg(self.fig)
-        #canvas.setStyleSheet("background-color:transparent;")
-
         canvas.draw()
         renderer = canvas.get_renderer()
         raw_data = renderer.tostring_rgb()
         size = canvas.get_width_height()
+
         self._surface = pygame.image.frombuffer(raw_data, size, "RGB")
+        if self.remove_background:
+            self._surface.set_colorkey((255,255,255))  #remove white background
         return self._surface
 
     def draw(self):

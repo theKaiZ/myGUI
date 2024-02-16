@@ -17,7 +17,7 @@ class Slide(Rect):
                 self.parent.active_slide.removefromGUI()
         parent.active_slide = self
         self.pos = parent.pos+ kwargs.get("pos") if kwargs.get("pos") else [0,0]
-        self.size = kwargs.get("size") if kwargs.get("size") else  parent.size
+        self.size = kwargs.get("size") if kwargs.get("size") is not None else  parent.size
         self.borders = kwargs.get("borders") or False
         self.manual_init()
 
