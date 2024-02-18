@@ -3,9 +3,11 @@ from myGUI.Rect import Button, Rectangular_object, ScrollTextfeld, Plot_object
 import numpy as np
 import pygame
 from numba import njit, prange
-
+from time import time
+from functools import lru_cache
 
 class golpanel(Rectangular_object):
+    _surface = None
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.dx = self.size[0] // self.cells.shape[0]
@@ -32,7 +34,39 @@ class golpanel(Rectangular_object):
         pygame.draw.line(self.screen, (255, 255, 255), self.pos + (0, self.ymax), self.pos + (self.xmax, self.ymax))
         pygame.draw.line(self.screen, (255, 255, 255), self.pos + (self.xmax, 0), self.pos + (self.xmax, self.ymax))
 
+    @staticmethod
+    @lru_cache()
+    def get_color(value):
+        if value:
+            return (0,0,0)
+        return (255,255,255)
+    @property
+    def surface(self):
+        if self._surface is not None:
+            return self._surface
+        #t = time()
+        surf = pygame.Surface(self.cells.shape)
+        nx, ny = self.cells.shape
+        for x in range(nx):
+            for y in range(ny):
+                try:
+                    surf.set_at((x, y), self.get_color(self.cells[x,y]))
+                except:
+                    print(self.get_color(self.cells[x,y]))
+                    print(self.cells[x,y])
+                    assert 0,""
+        #self._surface = pygame.transform.smoothscale(surf, tuple(self.size))
+        #if self.s >1:
+        surf = pygame.transform.scale(surf, tuple(self.size))
+        self._surface = surf
+        #print(f"{time() - t:.2f}, {self.cells.shape}")
+        return self._surface
+
     def draw_cells(self):
+        self.screen.blit(self.surface, (self.pos[0], self.pos[1], self.size[0], self.size[1]))
+        self._surface = None
+        return
+
         for x in range(self.cells.shape[0]):
             for y in range(self.cells.shape[1]):
                 if self.cells[x, y]:
@@ -74,12 +108,12 @@ class GoLSlide(Slide):
         self.differenzen = []
 
         Button(self, (10, 10), (80, 30), "random", command=lambda: self.fill_random())
-        self.plot = Plot_object(self, (650, 50), (400, 400))
+        self.plot = Plot_object(self, pos=(775, 50), size=(400, 400))
         ax = self.plot.ax
         self.line = ax.plot(range(1))[0]
         self.line2 = ax.plot(range(1), color="black", linestyle="dotted")[0]
         self.cells = np.zeros((s, s), dtype=int)
-        golpanel(parent=self, pos=(10, 50), size=(600, 600))
+        golpanel(parent=self, pos=(5, 5), size=(750, 750))
         self.fill_random()
         self.parent.toggle_update = True
 
@@ -112,13 +146,13 @@ class GoLSlide(Slide):
 
 class GOLGUI(Presenter):
     FPS = 20
-    _seed = 1
-    _dim = 100
-    size = np.array([1280, 800])
-    color = (100, 100, 100)
+    _seed = 113
+    _dim = 300
+    size = np.array([1280, 850])
+    color = (0, 50, 100)
 
     def manual_init(self):
-        ScrollTextfeld(self, self.size - (550, 30), (50, 30), "dim", 1, [10, 200])
+        ScrollTextfeld(self, self.size - (550, 30), (50, 30), "dim", 5, [10, 380])
         ScrollTextfeld(self, self.size - (600, 30), (50, 30), "seed", 1, [0, 10000])
         ScrollTextfeld(self, self.size - (500, 30), (50, 30), "FPS", 1, [1, 50])
         self.slides = [lambda: GoLSlide(self)]

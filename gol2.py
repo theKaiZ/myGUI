@@ -53,7 +53,7 @@ def get_color(value):
 def next_generation(c, newgen, z, gau):
     xmax = c.shape[0]
     ymax = c.shape[1]
-    n = 3
+    n = 3  ## should be smaller than 7
     for x in prange(xmax):
         for y in prange(ymax):
             dasum = 0
@@ -64,11 +64,11 @@ def next_generation(c, newgen, z, gau):
 
 
 class golpanel2(golpanel):
-    def draw_cells(self):
-        for x in range(self.cells.shape[0]):
-            for y in range(self.cells.shape[1]):
-                pygame.draw.rect(self.screen, get_color(self.cells[x, y]),
-                                 (self.pos[0] + x * self.dx, self.pos[1] + y * self.dy, self.dx, self.dy))
+    @staticmethod
+    @lru_cache(maxsize=255)
+    def get_color(value):
+        c = 255 * value
+        return (c, c, c)
 
 
 class gol2slide(GoLSlide):
@@ -80,7 +80,7 @@ class gol2slide(GoLSlide):
         self.cells = np.zeros((s, s), dtype=int)
         golpanel2(parent=self, pos=(10, 50), size=(600, 600))
         self.fill_random()
-        self.plot = Plot_object(self, pos=(650, 50),size= (400, 400), remove_background=True)
+        self.plot = Plot_object(self, pos=(650, 50),size= (400, 400), remove_background=False)
         self.line = self.plot.ax.plot(np.ones(50))[0]
         self.plot.ax.set_xlim(self.zl, self.zr)
         self.plot.ax.set_ylim(-0.05, 1.05)
@@ -114,10 +114,10 @@ class gol2slide(GoLSlide):
 
     def update(self):
         z, g = gauss(self.zl, self.zr, 300, self.parent.z0, sigma=self.parent.sigma, d=self.parent.d)
-        t = time()
+        #t = time()
         next_generation(self.cells, self.buffer, z, g)
         self.cells[:] = self.buffer
-        print(time() - t)
+        #print(time() - t)
 
         self.parent.toggle_update = True
 
@@ -125,8 +125,8 @@ class gol2slide(GoLSlide):
 class gol2gui(GOLGUI):
     FPS = 5
     _sigma = 3.05
-    _d = 0.03
-    _z0 = 16.5
+    _d = 0.99
+    _z0 = 7.25
 
     def manual_init(self):
         self.slides = [lambda: gol2slide(self)]
