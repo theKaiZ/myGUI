@@ -8,17 +8,23 @@ import pygame
 import numpy as np
 from PIL import Image
 
+
 class BaseObject():
     _color = None
     _offset = None
     _force = None ###move per frame
-
+    visible = None
     def __init__(self, parent, pos, **kwargs):
         self.parent = parent
         self.pos=pos
-        self.color= kwargs.get("color") if kwargs.get("color") is not None else (0,0,0)
+        for key in kwargs:
+            setattr(self, key, kwargs[key])
+        #if self.color is None:
+        #    self.color = 0
+        if self.visible is None:
+            self.visible = True
+        self.hover_color = self.set_a_color(kwargs.get("hover_color"))
         self.add2GUI()
-        self.visible = kwargs.get("visible") if kwargs.get("visible") is not None else True
 
     def add2GUI(self):
         if hasattr(self, "click"):
@@ -29,6 +35,26 @@ class BaseObject():
             self.parent.updateables.append(self)
         if hasattr(self, "keydown"):
             self.parent.keypressables.append(self)
+
+    @staticmethod
+    def set_a_color(value):
+        """
+        just make sure a color value that is set is in the right format (r,g,b)
+        :param value:
+        :return:
+        """
+        if value is None:
+            return None
+        if isinstance(value, float) or isinstance(value, int):
+            value = np.array([value,value,value])
+        value = np.array(value)
+        if np.isnan(value).sum():
+            value[np.isnan(value)]=0
+        if (value>255).sum():
+            print(f"warning, color value is out of bounds {value} > 255")
+        if (value<0).sum():
+            print(f"warning, color value is out of bounds {value} < 0")
+        return value
 
     @property
     def force(self):
@@ -66,20 +92,22 @@ class BaseObject():
 
     @property
     def color(self):
+        if self._color is None:
+            return (0,0,0)
         return self._color
 
     @color.setter
     def color(self, value):
-        if isinstance(value, float):
-            value = np.array([value,value,value])
-        value = np.array(value)
-        if np.isnan(value).sum():
-            value[np.isnan(value)]=0
-        self._color = value
+        self._color = self.set_a_color(value)
+
+    @staticmethod
+    def distance(p1,p2):
+        return np.sqrt((p1[0]-p2[0])**2 + (p1[1]-p2[1])**2)
 
 
 class Line(BaseObject):
     _pos2 = None
+    _d = None ###distance between pos1 and pos2
     def __init__(self, parent, pos, pos2, **kwargs):
         super().__init__(parent=parent, pos=pos, **kwargs)
         self._pos2 = pos2
@@ -93,8 +121,22 @@ class Line(BaseObject):
     def draw(self):
         if not self.visible:
             return
-        pygame.draw.line(self.screen, color=self.color, start_pos=self.pos, end_pos=self.pos2, width=2)
-
+        pygame.draw.line(self.screen, color=self.color, start_pos=self.pos, end_pos=self.pos2, width=2 if not self.mouseover else 4)
+        
+    @property
+    def d(self):
+        if self._d is None:
+            self._d = self.distance(self.pos, self.pos2)
+        return self._d
+    
+    @property
+    def mouseover(self):
+        d1 = self.distance(self.pos, self.parent.mouse_pos)
+        d2 = self.distance(self.pos2, self.parent.mouse_pos)
+        d = self.d*0.65
+        if d1 < d and d2 < d:
+            return True
+    
 class Circle(BaseObject):
     def __init__(self, parent, pos, radius, **kwargs):
         super().__init__(parent=parent, pos=pos, **kwargs)
@@ -109,22 +151,27 @@ class Circle(BaseObject):
         if self.force is not None:
             self._pos += self.force
 
+
+
+    @property
+    def mouseover(self):
+        mouse_pos = self.parent.mouse_pos
+        if self.distance(self.pos, mouse_pos) < self.radius:
+            return True
+        return False
+
 class Rect(BaseObject):
     _corners = None
     _pos = None
     _size = None
-    _color = None
     _offset = None
 
     def __init__(self, parent,pos=None, **kwargs):
         super().__init__(parent=parent,pos=pos,**kwargs)
         #self.pos = kwargs.get("pos") if kwargs.get("pos") is not None else np.array([0, 0])
         self.size = kwargs.get("size")
-        self.color = kwargs.get("color") if kwargs.get("color") is not None else np.array([150, 150, 150])
         self.filled = kwargs.get("filled")
         self.width=kwargs.get("width") or 0
-
-
 
     @property
     def size(self):
@@ -134,19 +181,22 @@ class Rect(BaseObject):
     def size(self, value):
         if value is None:
             self._size = self.parent.size
-        else:
-            self._size = np.array(value)
-
-
-
+            return
+        if isinstance(value, int) or isinstance(value, float):
+            value = (value, value)   ### now you can initialize the rect with a singular value that is taken twice
+        self._size = np.array(value)
 
     def draw(self):
         if not self.visible:
             return
-        pygame.draw.rect(self.screen, self.color,
-                         (self.pos[0], self.pos[1], self.size[0], self.size[1]), self.width)
-
-
+        color=self.color                    ####todo make this nicer this is ugly
+        if self.hover_color is not None:
+            if self.mouseover:
+                color = self.hover_color
+        pygame.draw.rect(self.screen,
+                         color,
+                         (*self.pos, *self.size),
+                         self.width)
 
 
     @property
@@ -155,6 +205,20 @@ class Rect(BaseObject):
             return self._corners
         self._corners = np.concatenate(([self.pos], [self.pos + self.size]))
         return self._corners
+
+    @property
+    def mouseover(self):
+        mouse = self.parent.mouse_pos
+        corn = self.corners
+        if mouse[0] < corn[0, 0]:
+            return False
+        if mouse[0] > corn[1, 0]:
+            return False
+        if mouse[1] < corn[0, 1]:
+            return False
+        if mouse[1] > corn[1, 1]:
+            return False
+        return True
 
 
 class Rectangular_object(Rect):
@@ -172,19 +236,7 @@ class Rectangular_object(Rect):
             return
         super().draw()
 
-    @property
-    def mouseover(self):
-        mouse = self.parent.mouse_pos
-        corn = self.corners
-        if mouse[0] < corn[0, 0]:
-            return False
-        if mouse[0] > corn[1, 0]:
-            return False
-        if mouse[1] < corn[0, 1]:
-            return False
-        if mouse[1] > corn[1, 1]:
-            return False
-        return True
+
 
     # def __del__(self):
     #    print("delte",self,"from",self.parent.__class__.__name__)
@@ -255,18 +307,15 @@ class RectImage(Rectangular_object):
         data = image.tobytes()
         self.image = pygame.image.frombuffer(data, size, mode)
         super(RectImage, self).__init__(parent=parent, pos=pos, size=size, **kwargs)
-        self.scaling = kwargs.get("scaling")
+        self.scaling = kwargs.get("scaling") if kwargs.get("scaling") is not None else 1
         self.rotation = kwargs.get("rotation")
 
     def draw(self):
         if not self.visible:
             return
-
         img = self.image
-        if self.scaling is not None:
+        if self.scaling != 1:
             size = (int(self.size[0]*self.scaling), int(self.size[1]*self.scaling))
-            #self.screen.blit(pygame.transform.scale(self.image, size), self.pos)
-            #return
             img = pygame.transform.scale(img, size)
         if self.rotation is not None:
             img = pygame.transform.rotate(img, self.rotation)
@@ -432,8 +481,9 @@ class Rect_with_text(Rectangular_object):
     def draw(self):
         if self.visible is False:
             return
+        super().draw()
         if self.panel:
-            super().draw()
+            pygame.draw.rect(self.screen, (200, 200, 200), (self.pos[0], self.pos[1], self.size[0], self.size[1]), 1)
         self.screen.blit(self.text_surface,
                          (self.pos[0] + self.size[0] / 2 - self.text_surface.get_width() / 2,
                           self.pos[1] + self.size[1] / 2 - self.text_surface.get_height() / 2))
@@ -442,17 +492,19 @@ class Rect_with_text(Rectangular_object):
 class Button(Rect_with_text):
     active = False
 
-    def __init__(self, parent, pos, size, text, **kwargs):
+    def __init__(self, parent, pos, size, text = "", **kwargs):
         self.command = kwargs.get("command")
         super(Button, self).__init__(parent=parent, pos=pos, size=size, text=text, **kwargs)
         self.panel = True if kwargs.get("panel") is None else kwargs.get("panel")
+        if self._color is None:
+            self.color = 150
 
 
     def draw(self):
         if not self.visible:
             return
+        super(Button, self).draw()
         if self.panel:
-            super(Button, self).draw()
             pygame.draw.rect(self.screen, (200, 200, 200), (self.pos[0], self.pos[1], self.size[0], self.size[1]), 1)
         self.screen.blit(self.text_surface,
                          (self.pos[0] + self.size[0] / 2 - self.text_surface.get_width() / 2,
@@ -462,7 +514,6 @@ class Button(Rect_with_text):
             self.action()
 
     def action(self):
-        print("Click the button",self)
         if self.command is not None:
             self.command()
 
