@@ -151,14 +151,26 @@ class Circle(BaseObject):
         if self.force is not None:
             self._pos += self.force
 
-
-
     @property
     def mouseover(self):
         mouse_pos = self.parent.mouse_pos
         if self.distance(self.pos, mouse_pos) < self.radius:
             return True
         return False
+
+class CircleButton(Circle):
+    def __init__(self, parent, pos, radius, **kwargs):
+        super().__init__(parent=parent, pos=pos, radius=radius, **kwargs)
+        self.command = kwargs.get("command")
+
+    def action(self):
+        if self.command is not None:
+            self.command()
+    def click(self):
+        if self.mouseover:
+            self.action()
+
+
 
 class Rect(BaseObject):
     _corners = None
