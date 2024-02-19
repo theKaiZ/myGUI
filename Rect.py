@@ -557,7 +557,7 @@ class Textfeld(Rect_with_text):
             return self._text_surface
         wert = self.value
         if isinstance(wert, float) or isinstance(wert, np.float32):
-            wert = "{0:.3f}".format(wert)
+            wert = "{0:.5f}".format(wert)
 
         self.text = str(wert)
         self._text_surface = self.render_surface()
