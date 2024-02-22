@@ -1,5 +1,5 @@
 import pygame
-from myGUI.Rect import ScrollTextfeld, Rectangular_object
+from myGUI.Rect import ScrollTextfeld, Rect
 from myGUI.Slide import Presenter, Slide
 import numpy as np
 from time import time
@@ -32,7 +32,7 @@ def next_generation(cells, rulset, gen):
         cells[i, gen] = rulset[triple]
 
 
-class ca_image(Rectangular_object):
+class ca_image(Rect):
     _surface = None
     def __init__(self, parent, cells, size, **kwargs):
         pos = (0, 0)

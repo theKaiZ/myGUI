@@ -1,4 +1,4 @@
-from myGUI.Rect import Button, Rectangular_object, Rect
+from myGUI.Rect import Button, Rect
 from myGUI.GUI import myGUI
 import pygame
 import numpy as np
@@ -133,7 +133,7 @@ class Presenter(myGUI):
                        lambda: S3(self)]
 
     def setup_buttons(self):
-        NextButton(self, self.size -(100, 50), (100, 50), "NEXT", command=lambda: self.next, text_size=20)
+        NextButton(self, self.size -(100, 50), (100, 50), "NEXT", command=lambda: self.next, text_size=20, hover_color=(0,255,0))
 
     def keydown(self):
         super().keydown()

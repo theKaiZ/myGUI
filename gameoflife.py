@@ -1,12 +1,12 @@
 from myGUI.Slide import Slide, Presenter
-from myGUI.Rect import Button, Rectangular_object, ScrollTextfeld, Plot_object
+from myGUI.Rect import Button, Rect, ScrollTextfeld, Plot_object
 import numpy as np
 import pygame
 from numba import njit, prange
 from time import time
 from functools import lru_cache
 
-class golpanel(Rectangular_object):
+class golpanel(Rect):
     _surface = None
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

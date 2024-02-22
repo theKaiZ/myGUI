@@ -1,9 +1,10 @@
 import matplotlib.pyplot as plt
 import matplotlib
-from os import listdir
-from os.path import join
 matplotlib.use("Agg")
 import matplotlib.backends.backend_agg as agg
+from os import listdir
+from os.path import join
+
 import pygame
 import numpy as np
 from PIL import Image
@@ -14,15 +15,15 @@ class BaseObject():
     _offset = None
     _force = None ###move per frame
     visible = None
+    mouseover = False
     def __init__(self, parent, pos, **kwargs):
         self.parent = parent
-        self.pos=pos
+        self.pos= pos
         for key in kwargs:
             setattr(self, key, kwargs[key])
-        #if self.color is None:
-        #    self.color = 0
         if self.visible is None:
             self.visible = True
+        self.color = kwargs.get("color")
         self.hover_color = self.set_a_color(kwargs.get("hover_color"))
         self.add2GUI()
 
@@ -35,6 +36,16 @@ class BaseObject():
             self.parent.updateables.append(self)
         if hasattr(self, "keydown"):
             self.parent.keypressables.append(self)
+
+    def removefromGUI(self):
+        if hasattr(self, "draw"):
+            self.parent.drawables.remove(self)
+        if hasattr(self, "click"):
+            self.parent.clickables.remove(self)
+        if hasattr(self, "update"):
+            self.parent.updateables.remove(self)
+        if hasattr(self, "keydown"):
+            self.parent.keypressables.remove(self)
 
     @staticmethod
     def set_a_color(value):
@@ -64,15 +75,6 @@ class BaseObject():
     def force(self, value):
         self._force = np.array(value)
 
-    def removefromGUI(self):
-        if hasattr(self, "draw"):
-            self.parent.drawables.remove(self)
-        if hasattr(self, "click"):
-            self.parent.clickables.remove(self)
-        if hasattr(self, "update"):
-            self.parent.updateables.remove(self)
-        if hasattr(self, "keydown"):
-            self.parent.keypressables.remove(self)
 
     @property
     def pos(self):
@@ -92,12 +94,14 @@ class BaseObject():
 
     @property
     def color(self):
-        if self._color is None:
-            return (0,0,0)
+        if self.mouseover and self.hover_color is not None:
+            return self.hover_color
         return self._color
 
     @color.setter
     def color(self, value):
+        if value is None:
+            value = 0
         self._color = self.set_a_color(value)
 
     @staticmethod
@@ -186,6 +190,9 @@ class Rect(BaseObject):
         self.width=kwargs.get("width") or 0
 
     @property
+    def event(self):
+        return self.parent.event
+    @property
     def size(self):
         return self._size
 
@@ -201,12 +208,8 @@ class Rect(BaseObject):
     def draw(self):
         if not self.visible:
             return
-        color=self.color                    ####todo make this nicer this is ugly
-        if self.hover_color is not None:
-            if self.mouseover:
-                color = self.hover_color
         pygame.draw.rect(self.screen,
-                         color,
+                         self.color,
                          (*self.pos, *self.size),
                          self.width)
 
@@ -233,28 +236,8 @@ class Rect(BaseObject):
         return True
 
 
-class Rectangular_object(Rect):
 
-    def __init__(self, parent, **kwargs):
-        super().__init__(parent=parent, **kwargs)
-        self.visible = True if kwargs.get("visible") is None else kwargs.get("visible")
-
-    @property
-    def event(self):
-        return self.parent.event
-
-    def draw(self):
-        if not self.visible:
-            return
-        super().draw()
-
-
-
-    # def __del__(self):
-    #    print("delte",self,"from",self.parent.__class__.__name__)
-
-
-class Plot_object(Rectangular_object):
+class Plot_object(Rect):
     _surface = None
     fig = None
     ax = None
@@ -311,7 +294,7 @@ class Plot_object(Rectangular_object):
         plt.close(self.fig)
 
 
-class RectImage(Rectangular_object):
+class RectImage(Rect):
     def __init__(self, parent, pos, image, **kwargs):
         image = Image.open(image)
         size = image.size
@@ -334,7 +317,7 @@ class RectImage(Rectangular_object):
         self.screen.blit(img, self.pos)
 
 
-class RectImageSeries(Rectangular_object):
+class RectImageSeries(Rect):
     index = 0
 
     def __init__(self, parent, pos, images, **kwargs):
@@ -386,7 +369,7 @@ class ImgOnLoad():
         return self._Image
 
 
-class VideoRect(Rectangular_object):
+class VideoRect(Rect):
     _index = 0
 
     def __init__(self, parent, folder, **kwargs):
@@ -428,7 +411,7 @@ class VideoRect(Rectangular_object):
                              width=1)
 
 
-class Rect_with_text(Rectangular_object):
+class Rect_with_text(Rect):
     _text_surface = None
     _text_color = None
     _bold = False
@@ -493,9 +476,8 @@ class Rect_with_text(Rectangular_object):
     def draw(self):
         if self.visible is False:
             return
-        super().draw()
         if self.panel:
-            pygame.draw.rect(self.screen, (200, 200, 200), (self.pos[0], self.pos[1], self.size[0], self.size[1]), 1)
+            super().draw()
         self.screen.blit(self.text_surface,
                          (self.pos[0] + self.size[0] / 2 - self.text_surface.get_width() / 2,
                           self.pos[1] + self.size[1] / 2 - self.text_surface.get_height() / 2))
@@ -506,18 +488,16 @@ class Button(Rect_with_text):
 
     def __init__(self, parent, pos, size, text = "", **kwargs):
         self.command = kwargs.get("command")
+        if kwargs.get("color") is None:
+            kwargs["color"] = 150
         super(Button, self).__init__(parent=parent, pos=pos, size=size, text=text, **kwargs)
         self.panel = True if kwargs.get("panel") is None else kwargs.get("panel")
-        if self._color is None:
-            self.color = 150
-
 
     def draw(self):
         if not self.visible:
             return
         super(Button, self).draw()
-        if self.panel:
-            pygame.draw.rect(self.screen, (200, 200, 200), (self.pos[0], self.pos[1], self.size[0], self.size[1]), 1)
+        pygame.draw.rect(self.screen,(200,200,200), (*self.pos, *self.size), width=2)
         self.screen.blit(self.text_surface,
                          (self.pos[0] + self.size[0] / 2 - self.text_surface.get_width() / 2,
                           self.pos[1] + self.size[1] / 2 - self.text_surface.get_height() / 2))

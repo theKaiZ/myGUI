@@ -10,7 +10,7 @@ def add(obj, var, val):
 
 class myGUI():
     timestamp = 0
-    FPS = 25
+    FPS = 5
     running = True
     drawables = []
     clickables = []
@@ -71,10 +71,11 @@ class myGUI():
         Button(self, (400, 200), (50, 50), "+", command=lambda: add(self, "rand", 0.1))
         ScrollTextfeld(self, (500, 200), (50, 50), "test1", 1, limits=[1, 100], operator="+")
         ScrollTextfeld(self, (500, 250), (50, 50), "test2", 1.1, limits=[1, 100], operator="*")
-        Button(self, (500, 500), (100, 100), "print", command=lambda: self.print())
+        Button(self, (500, 500), (100, 100), "print", command=lambda: self.print(), hover_color=(1,255,30))
 
         ScrollTextfeld(self, (0, 0), (100, 100), "test3", change_value=1, limits=[1, 10], operator="+", index=0)
-
+        Circle(self, (600,100), 30, filled=True, hover_color=(255,255,0))
+        #CircleButton(self, (600,150), 30, filled=True, command=lambda:print("true"))
     def run(self):
         while self.mainloop():
             pass
