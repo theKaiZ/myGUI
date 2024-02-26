@@ -1,5 +1,4 @@
 from gameoflife import GOLGUI, GoLSlide, ScrollTextfeld, golpanel, Button, Plot_object
-import pygame
 from functools import lru_cache
 import numpy as np
 from numba import njit, prange
@@ -131,8 +130,8 @@ class gol2gui(GOLGUI):
     def manual_init(self):
         self.slides = [lambda: gol2slide(self)]
         ScrollTextfeld(self, self.size - (800, 30), (50, 30), "z0", 0.25, [1, 100])
-        ScrollTextfeld(self, self.size - (850, 30), (50, 30), "sigma", 0.05, [0.1, 8])
-        ScrollTextfeld(self, self.size - (900, 30), (50, 30), "d", 0.01, [0.01, 0.99])
+        ScrollTextfeld(self, self.size - (850, 30), (50, 30), "sigma", 0.05, [0.05, 12])
+        ScrollTextfeld(self, self.size - (900, 30), (50, 30), "d", 0.01, [-.99, .99])
         ScrollTextfeld(self, self.size - (550, 30), (50, 30), "dim", 10, [10, 300])
         ScrollTextfeld(self, self.size - (600, 30), (50, 30), "seed", 1, [0, 10000])
         ScrollTextfeld(self, self.size - (500, 30), (50, 30), "FPS", 1, [1, 50])

@@ -1,9 +1,9 @@
 from myGUI.Slide import Slide, Presenter
-from myGUI.Rect import Button, Rect, ScrollTextfeld, Plot_object
+from myGUI.Rect import Button, Rect, ScrollTextfeld
+from myGUI.Plots import Plot_object
 import numpy as np
 import pygame
 from numba import njit, prange
-from time import time
 from functools import lru_cache
 
 class golpanel(Rect):
