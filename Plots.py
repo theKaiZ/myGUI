@@ -6,13 +6,6 @@ import matplotlib.pyplot as plt
 import pygame
 
 
-matplotlib.rcParams.update({"lines.linewidth": 1,
-                            "axes.labelsize": 15,
-                            "xtick.labelsize": 8,
-                            "ytick.labelsize": 8,
-                            "axes.titlesize": 10,
-                            'font.size': 8})
-
 
 class Plot_object(Rect):
     _surface = None
@@ -29,6 +22,7 @@ class Plot_object(Rect):
         else:
             self.setup()
         self.manual_init()
+        self.fig.tight_layout()
 
     def manual_init(self):
         pass
@@ -37,12 +31,28 @@ class Plot_object(Rect):
     def setup(self):
         self.fig, self.ax = plt.subplots(1,1,figsize=self.size//100)
 
+
     def plot(self, xdata=None, ydata=None, **kwargs):
         self._surface = None
         if xdata is not None and ydata is not None:
             return self.ax.plot(xdata, ydata, **kwargs)
         elif xdata is not None:
             return self.ax.plot(xdata, **kwargs)
+
+    def render_surface(self):
+        if self.remove_background:
+            self.fig.set_facecolor((0,0,0,0))
+            for ax in self.fig.get_axes():
+                ax.set_facecolor((0,0,0,0))
+        canvas = agg.FigureCanvasAgg(self.fig)
+        canvas.draw()
+        buf = canvas.buffer_rgba()
+        #renderer = canvas.get_renderer()
+        #raw_data = renderer.tostring_rgb()
+        size = canvas.get_width_height()
+        self._surface = pygame.image.frombuffer(buf, size, "RGBA")
+        #if self.remove_background:
+        #    self._surface.set_colorkey((255,255,255))  #remove white background
 
     @property
     def surface(self):
@@ -53,15 +63,7 @@ class Plot_object(Rect):
         """
         if self._surface is not None:
             return self._surface
-        canvas = agg.FigureCanvasAgg(self.fig)
-        canvas.draw()
-        renderer = canvas.get_renderer()
-        raw_data = renderer.tostring_rgb()
-        size = canvas.get_width_height()
-
-        self._surface = pygame.image.frombuffer(raw_data, size, "RGB")
-        if self.remove_background:
-            self._surface.set_colorkey((255,255,255))  #remove white background
+        self.render_surface()
         return self._surface
 
     def draw(self):

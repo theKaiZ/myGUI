@@ -360,6 +360,7 @@ class Rect_with_text(Rect):
     _text_color = None
     _bold = False
     _underline = False
+    _text = None
     def __init__(self, parent, pos, text, **kwargs):
         if kwargs.get("size") is None:
             kwargs["size"] = (0,0)
@@ -387,6 +388,17 @@ class Rect_with_text(Rect):
     @property
     def font(self):
         return self.parent.myfonts[self.text_size]
+
+    @property
+    def text(self):
+        return self._text
+
+    @text.setter
+    def text(self,string):
+        if string== self.text:
+            return
+        self._text = string
+        self._text_surface = None
 
     def render_surface(self):
         if self.underline:
@@ -505,7 +517,7 @@ class Textfeld(Rect_with_text):
 
 
 class ScrollTextfeld(Textfeld):
-    def __init__(self, parent, pos, size, key, change_value, limits=None, operator="+", **kwargs):
+    def __init__(self, parent, pos, size, key, change_value=1, limits=None, operator="+", **kwargs):
         super().__init__(parent=parent, pos=pos, size=size, key=key, **kwargs)
         self.change_value = change_value
         self.limits = limits

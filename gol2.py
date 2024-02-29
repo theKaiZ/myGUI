@@ -79,7 +79,7 @@ class gol2slide(GoLSlide):
         self.cells = np.zeros((s, s), dtype=int)
         golpanel2(parent=self, pos=(10, 50), size=(600, 600))
         self.fill_random()
-        self.plot = Plot_object(self, pos=(650, 50),size= (400, 400), remove_background=False)
+        self.plot = Plot_object(self, pos=(650, 50),size= (400, 400), remove_background=True)
         self.line = self.plot.ax.plot(np.ones(50))[0]
         self.plot.ax.set_xlim(self.zl, self.zr)
         self.plot.ax.set_ylim(-0.05, 1.05)

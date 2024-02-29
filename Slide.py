@@ -1,7 +1,10 @@
 from myGUI.Rect import Button, Rect
+from myGUI.Plots import Plot_object
 from myGUI.GUI import myGUI
 import pygame
 import numpy as np
+from FFOpt23.Distribution import Optimizer, Distribution
+
 class Slide(Rect):
     _pos = None
     _size = None
@@ -92,48 +95,73 @@ class Slide(Rect):
             obj.removefromGUI()
 
 
+class myPlot(Plot_object):
+    do = None
+    def manual_init(self):
+        self.x = np.linspace(0,4*np.pi,200)
+        self.y = np.sin(self.x)
+        self.ax.set_xlim(0,np.pi*4)
+        self.ax.plot(self.x,self.y)
+        self.fill = self.ax.fill_between(self.x,self.y,alpha=0.0)
+
+    def update(self):
+        if self.do is not None:
+            self.do()
+            self.parent.parent.toggle_update=True
+
+    def anim(self):
+        a = self.fill.get_alpha()
+        if a >=1:
+            self.do = None
+            return
+        a+=0.05
+        self.fill.set_alpha(min(1,a))
+        self._surface=None
+        self.parent.toggle_update=True
+
+
+
+
 class S1(Slide):
     def manual_init(self):
-        Rectangular_object(self, pos=(00, 00), size=(50, 50))
-        R = Rectangular_object(self, pos=(100, 200), size=(50, 50))
-        Button(self, (260,100), (50,50), "Hallo",command=lambda:R.__setattr__("color", np.random.randint((235,235,235))))
+        Rect(self, pos=(00, 00), size=(50, 50))
+        p = myPlot(self, pos=(300,300),size=(400,200))
+        self.R = Rect(self, pos=(100, 200), size=(50, 50))
+        Button(self, (260,100), (50,50), "Hallo",command=lambda:self.R.__setattr__("color", np.random.randint((235,235,235))))
         # P =Plot_object(self.parent,(0,00),(300,300))
-        self.actions.append(lambda: R.__setattr__("color",(10,50,30)))
+        self.actions.append(lambda: setattr(p,"do",p.anim))
+        self.actions.append(lambda: self.R.__setattr__("color",(10,150,30)))
+
 
 
 class S2(Slide):
     def manual_init(self):
-        R1 = Rectangular_object(self, pos= (300, 100), size= (50, 50))
-        R2 = Rectangular_object(self, pos=(300, 200), size=(50, 50))
-
-        self.actions.append(lambda:R1.__setattr__("color",(50,30,10)))
-        self.actions.append(lambda:R2.__setattr__("color",(150,60,80)))
+        R1 = Rect(self, pos= (300, 100), size= (50, 50))
+        #R2 = Rect(self, pos=(300, 200), size=(50, 50))
 
 
 class S3(Slide):
     def manual_init(self):
-        Rectangular_object(self, pos=(350, 100), size=(50, 50))
-        Rectangular_object(self, pos=(350, 200), size=(50, 50))
-
-
-class NextButton(Button):
-    def keydown(self):
-        if self.event.key == pygame.K_RIGHT:
-            self.command()
+        Rect(self, pos=(350, 100), size=(50, 50))
+        Rect(self, pos=(350, 200), size=(50, 50))
 
 
 class Presenter(myGUI):
     active_slide = None
-    num_slide = 0
+    num_slide = -1
+    FPS=25
     size=np.array((800,800))
+    color=(50,50,100)
+    _color_rect=None
     #mode = pygame.locals.FULLSCREEN
     def manual_init(self):
         self.slides = [lambda: S1(self),
                        lambda: S2(self),
-                       lambda: S3(self)]
-
+                       #lambda: S3(self)
+                       ]
+        print(self.updateables)
     def setup_buttons(self):
-        NextButton(self, self.size -(100, 50), (100, 50), "NEXT", command=lambda: self.next, text_size=20, hover_color=(0,255,0))
+        Button(self, self.size -(100, 50), (100, 50), "NEXT", command=lambda: self.next, text_size=20, hover_color=(0,255,0))
 
     def keydown(self):
         super().keydown()
@@ -162,13 +190,31 @@ class Presenter(myGUI):
             self.num_slide += 1
             if self.num_slide > len(self.slides) - 1:
                 self.num_slide = 0
-            self.active_slide = self.slides[self.num_slide]()
+            self.slides[self.num_slide]()
             return
         if self.active_slide.next:
+            self.toggle_update=True
             return
-        self.active_slide.removefromGUI()
-        self.active_slide = None
-        self.next
+        self.num_slide += 1
+        if self.num_slide > len(self.slides)-1:
+            self.num_slide = 0
+        self.slides[self.num_slide]()
+
+    @property
+    def color_rect(self):
+        if self._color_rect is not None:
+            return self._color_rect
+        left_colour = (255,255,255)#(30, 60, 150)
+        right_colour = (100,180,250)#(50, 90, 250)
+        colour_rect = pygame.Surface((2, 2))  # tiny! 2x2 bitmap
+        pygame.draw.line(colour_rect, left_colour, (0, 0), (0, 1))  # left colour line
+        pygame.draw.line(colour_rect, right_colour, (1, 0), (1, 1))  # right colour line
+        self._color_rect = pygame.transform.smoothscale(colour_rect, (self.size[0], self.size[1]))
+        return self._color_rect
+
+    def background(self):
+        self.screen.blit(self.color_rect, (self.pos[0], self.pos[1], self.size[0], self.size[1]))
+
 
 if __name__ == "__main__":
     Presenter().run()
