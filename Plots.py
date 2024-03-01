@@ -85,7 +85,7 @@ class Formula(Plot_object):
     def manual_init(self):
         self.ax.set_xlim(0,1)
         self.ax.set_ylim(0,1)
-        self.ax.text(.5,.5,self.formula, size=self.textsize,ha="left", va="bottom")
+        self.ax.text(0.0,.5,self.formula, size=self.textsize,ha="left", va="bottom")
         self.ax.axis("off")
-        self.pos -= self.size//2
+        self.pos -= (self.size[0]//8,self.size[1]//2)
 
