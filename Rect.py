@@ -248,6 +248,7 @@ class RectImage(Rect):
         super(RectImage, self).__init__(parent=parent, pos=pos, size=size, **kwargs)
         self.scaling = kwargs.get("scaling") if kwargs.get("scaling") is not None else 1
         self.rotation = kwargs.get("rotation")
+        self.border = kwargs.get("border")
 
     def draw(self):
         if not self.visible:
@@ -259,6 +260,8 @@ class RectImage(Rect):
         if self.rotation is not None:
             img = pygame.transform.rotate(img, self.rotation)
         self.screen.blit(img, self.pos)
+        if self.border:
+            pygame.draw.rect(self.screen,(0,0,0),(*self.pos,*self.size), width=1)
 
 
 class RectImageSeries(Rect):

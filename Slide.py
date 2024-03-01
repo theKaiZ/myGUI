@@ -18,7 +18,7 @@ class Slide(Rect):
         if hasattr(self.parent, "active_slide"):
             if self.parent.active_slide is not None:
                 self.parent.active_slide.removefromGUI()
-        parent.active_slide = self
+            self.parent.active_slide = self
         self.pos = parent.pos+ kwargs.get("pos") if kwargs.get("pos") else [0,0]
         self.size = kwargs.get("size") if kwargs.get("size") is not None else  parent.size
         self.borders = kwargs.get("borders") or False
