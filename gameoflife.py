@@ -15,6 +15,8 @@ class golpanel(Rect):
         self.xmax = self.cells.shape[0] * self.dx
         self.ymax = self.cells.shape[1] * self.dy
         self.grid = False
+        self.surf = pygame.Surface(self.cells.shape)
+        self.surf.set_colorkey((255,255,255))
 
     @property
     def cells(self):
@@ -29,10 +31,7 @@ class golpanel(Rect):
                                  self.pos + (self.xmax, y * self.dy))
 
     def draw_rect(self):
-        pygame.draw.line(self.screen, (255, 255, 255), self.pos, self.pos + (self.xmax, 0))
-        pygame.draw.line(self.screen, (255, 255, 255), self.pos, self.pos + (0, self.ymax))
-        pygame.draw.line(self.screen, (255, 255, 255), self.pos + (0, self.ymax), self.pos + (self.xmax, self.ymax))
-        pygame.draw.line(self.screen, (255, 255, 255), self.pos + (self.xmax, 0), self.pos + (self.xmax, self.ymax))
+        pygame.draw.rect(self.screen, (0, 0, 0), (*self.pos,*self.size),1)
 
     @staticmethod
     @lru_cache()
@@ -45,7 +44,7 @@ class golpanel(Rect):
         if self._surface is not None:
             return self._surface
         #t = time()
-        surf = pygame.Surface(self.cells.shape)
+        surf = self.surf
         nx, ny = self.cells.shape
         for x in range(nx):
             for y in range(ny):
@@ -65,13 +64,6 @@ class golpanel(Rect):
     def draw_cells(self):
         self.screen.blit(self.surface, (self.pos[0], self.pos[1], self.size[0], self.size[1]))
         self._surface = None
-        return
-
-        for x in range(self.cells.shape[0]):
-            for y in range(self.cells.shape[1]):
-                if self.cells[x, y]:
-                    pygame.draw.rect(self.screen, (255, 255, 255),
-                                     (self.pos[0] + x * self.dx, self.pos[1] + y * self.dy, self.dx, self.dy))
 
     def draw(self):
         if self.grid:
