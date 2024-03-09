@@ -3,7 +3,6 @@ from myGUI.Plots import Plot_object
 from myGUI.GUI import myGUI
 import pygame
 import numpy as np
-from FFOpt23.Distribution import Optimizer, Distribution
 
 class Slide(Rect):
     _pos = None

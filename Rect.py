@@ -292,6 +292,7 @@ class ImgOnLoad():
     def __init__(self, path, **kwargs):
         self.path = path
         self.scale = kwargs.get("scale")
+        self.colorkey = kwargs.get("colorkey")
 
     @property
     def img(self):
@@ -302,6 +303,8 @@ class ImgOnLoad():
         mode = img.mode
         data = img.tobytes()
         self._img = pygame.image.frombuffer(data, size, mode)
+        if self.colorkey is not None:
+            self._img.set_colorkey(self.colorkey)
         return self._img
 
     @property

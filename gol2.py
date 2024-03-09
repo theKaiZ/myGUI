@@ -131,7 +131,7 @@ class gol2gui(GOLGUI):
         self.slides = [lambda: gol2slide(self)]
         ScrollTextfeld(self, self.size - (800, 30), (50, 30), "z0", 0.25, [1, 100])
         ScrollTextfeld(self, self.size - (850, 30), (50, 30), "sigma", 0.05, [0.05, 12])
-        ScrollTextfeld(self, self.size - (900, 30), (50, 30), "d", 0.01, [-.99, .99])
+        ScrollTextfeld(self, self.size - (900, 30), (50, 30), "d", 0.01, [-.99, 0.99])
         ScrollTextfeld(self, self.size - (550, 30), (50, 30), "dim", 10, [10, 300])
         ScrollTextfeld(self, self.size - (600, 30), (50, 30), "seed", 1, [0, 10000])
         ScrollTextfeld(self, self.size - (500, 30), (50, 30), "FPS", 1, [1, 50])
