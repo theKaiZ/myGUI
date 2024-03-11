@@ -484,8 +484,9 @@ class Textfeld(Rect_with_text):
     def draw(self):
         if not self.visible:
             return
-        pygame.draw.rect(self.screen, (150, 150, 150), (self.pos[0], self.pos[1], self.size[0], self.size[1]), 0)
-        pygame.draw.rect(self.screen, (200, 200, 200), (self.pos[0], self.pos[1], self.size[0], self.size[1]), 1)
+        if self.background:
+            pygame.draw.rect(self.screen, (150, 150, 150), (self.pos[0], self.pos[1], self.size[0], self.size[1]), 0)
+            pygame.draw.rect(self.screen, (200, 200, 200), (self.pos[0], self.pos[1], self.size[0], self.size[1]), 1)
         self.screen.blit(self.text_surface,
                          (self.pos[0] + self.size[0] / 2 - self.text_surface.get_width() / 2,
                           self.pos[1] + self.size[1] / 2 - self.text_surface.get_height() / 2))
