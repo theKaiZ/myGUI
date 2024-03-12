@@ -51,13 +51,8 @@ class Slide(Rect):
     def screen(self):
         return self.parent.screen
 
-    @property
-    def myfont(self):
-        return (self.parent.myfont)
-
-    @property
-    def myfonts(self):
-        return self.parent.myfonts
+    def get_font(self, fontsize):
+        return self.parent.get_font(fontsize)
 
     @property
     def mouse_pos(self):

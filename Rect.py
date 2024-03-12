@@ -203,6 +203,13 @@ class Rect(BaseObject):
             value = (value, value)   ### now you can initialize the rect with a singular value that is taken twice
         self._size = np.array(value)
 
+    @property
+    def sx(self):
+        return self.size[0]
+    @property
+    def sy(self):
+        return self.size[1]
+
     def draw(self):
         if not self.visible:
             return
@@ -378,6 +385,7 @@ class Rect_with_text(Rect):
         self.underline = kwargs.get("underline")
         self.bold=kwargs.get("bold")
         self.panel = kwargs.get("panel") if kwargs.get("panel") is not None else True
+        self.alignement = kwargs.get("alignement") if kwargs.get("alignement") is not None else "center"
 
     @property
     def bold(self):
@@ -393,7 +401,7 @@ class Rect_with_text(Rect):
 
     @property
     def font(self):
-        return self.parent.myfonts[self.text_size]
+        return self.parent.get_font(self.text_size)
 
     @property
     def text(self):
@@ -440,9 +448,17 @@ class Rect_with_text(Rect):
             return
         if self.panel:
             super().draw()
-        self.screen.blit(self.text_surface,
-                         (self.pos[0] + self.size[0] / 2 - self.text_surface.get_width() / 2,
-                          self.pos[1] + self.size[1] / 2 - self.text_surface.get_height() / 2))
+        if self.alignement == "center":
+            x = self.pos[0] + self.size[0] / 2 - self.text_surface.get_width() / 2
+            y = self.pos[1] + self.size[1] / 2 - self.text_surface.get_height() / 2
+        elif self.alignement =="left":
+            x = self.pos[0]
+            y = self.pos[1] + self.size[1] / 2 - self.text_surface.get_height() / 2
+        elif self.alignement == "right":
+            x = self.pos[0] - self.size[0] / 2 - self.text_surface.get_width() / 2
+            y = self.pos[1] + self.size[1] / 2 - self.text_surface.get_height() / 2
+
+        self.screen.blit(self.text_surface, (x,y))
 
 
 class Button(Rect_with_text):

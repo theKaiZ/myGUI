@@ -24,20 +24,22 @@ class myGUI():
     size = np.array([1800, 900])
     mode = pygame.locals.DOUBLEBUF
     color = (255, 255, 255)
-
+    myfonts = {}
     def __init__(self):
         pygame.init()
         pygame.display.set_mode(self.size, self.mode)
         self.myfont = pygame.font.SysFont("Comic Sans MS", 15 if 'win' in platform else 30)
-        self.myfonts = {}
-        for i in [10, 12, 15, 20,25, 30, 40,50,60,70,80,90]:
-            self.myfonts[i] = pygame.font.SysFont("Arial", size=i)
         self.screen = pygame.display.get_surface()
         self.plots = []
         self.manual_init()
         self.setup_buttons()
         self.setup_plots()
         self.timer = time()
+
+    def get_font(self, fontsize):
+        if self.myfonts.get(fontsize) is None:
+            self.myfonts[fontsize] = pygame.font.SysFont("Arial", size=fontsize)
+        return self.myfonts[fontsize]
 
     def background(self):
         self.screen.fill(self.color)
