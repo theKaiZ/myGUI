@@ -4,6 +4,7 @@ from os import listdir
 from os.path import join
 
 import pygame
+import pygame.gfxdraw
 import numpy as np
 from PIL import Image
 
@@ -140,16 +141,19 @@ class Line(BaseObject):
             return True
     
 class Circle(BaseObject):
+
     def __init__(self, parent, pos, radius, **kwargs):
         super().__init__(parent=parent, pos=pos, **kwargs)
         self.radius = radius
         self.filled = kwargs.get("filled") if kwargs.get("filled") is not None else False
         self.width = kwargs.get("width") if kwargs.get("width") is not None else 1
-
     def draw(self):
         if not self.visible:
             return
-        pygame.draw.circle(self.screen,color=self.color,center=self.pos, radius=self.radius, width = self.width if not self.filled else 0)
+        if self.width==1:
+            pygame.gfxdraw.aacircle(self.screen, self.px, self.py, self.radius, self.color)
+        else:
+            pygame.draw.circle(self.screen,color=self.color,center=self.pos, radius=self.radius, width = self.width if not self.filled else 0)
         if self.force is not None:
             self._pos += self.force
 
@@ -159,6 +163,13 @@ class Circle(BaseObject):
         if self.distance(self.pos, mouse_pos) < self.radius:
             return True
         return False
+
+    @property
+    def px(self):
+        return self.pos[0]
+    @property
+    def py(self):
+        return self.pos[1]
 
 class CircleButton(Circle):
     def __init__(self, parent, pos, radius, **kwargs):
@@ -179,6 +190,8 @@ class Rect(BaseObject):
     _pos = None
     _size = None
     _offset = None
+    _alpha = None
+
 
     def __init__(self, parent,pos=None, **kwargs):
         super().__init__(parent=parent,pos=pos,**kwargs)
@@ -186,6 +199,18 @@ class Rect(BaseObject):
         self.size = kwargs.get("size")
         self.filled = kwargs.get("filled")
         self.width=kwargs.get("width") or 0
+        self.alpha = kwargs.get("alpha")
+
+    @property
+    def alpha(self):
+        return self._alpha
+
+    @alpha.setter
+    def alpha(self,value:int):
+        if value == self._alpha:
+            return
+        self._alpha = value
+        self._text_surface = None
 
     @property
     def event(self):
@@ -252,23 +277,37 @@ class RectImage(Rect):
         mode = image.mode
         data = image.tobytes()
         self.image = pygame.image.frombuffer(data, size, mode)
-        super(RectImage, self).__init__(parent=parent, pos=pos, size=size, **kwargs)
+        super(RectImage, self).__init__(parent=parent, pos=pos,size=size, **kwargs)
         self.scaling = kwargs.get("scaling") if kwargs.get("scaling") is not None else 1
         self.rotation = kwargs.get("rotation")
         self.border = kwargs.get("border")
+
+    @property
+    def size(self):
+        return self._size*self.scaling
+
+    @size.setter
+    def size(self,value):
+        self._size = np.array(value)
+
+    @property
+    def under(self):
+        return self._pos + self.size -[self.sx//2,-15]
 
     def draw(self):
         if not self.visible:
             return
         img = self.image
         if self.scaling != 1:
-            size = (int(self.size[0]*self.scaling), int(self.size[1]*self.scaling))
-            img = pygame.transform.scale(img, size)
+            #size = (int(self.size[0]*self.scaling), int(self.size[1]*self.scaling))
+            img = pygame.transform.scale(img, self.size.astype(int))
         if self.rotation is not None:
             img = pygame.transform.rotate(img, self.rotation)
+        if self.alpha is not None:
+            img.set_alpha(self.alpha)
         self.screen.blit(img, self.pos)
         if self.border:
-            pygame.draw.rect(self.screen,(0,0,0),(*self.pos,*self.size), width=1)
+            pygame.draw.rect(self.screen,(0,0,0),(*self.pos,*self.size*self.scaling), width=1)
 
 
 class RectImageSeries(Rect):
@@ -298,7 +337,7 @@ class ImgOnLoad():
 
     def __init__(self, path, **kwargs):
         self.path = path
-        self.scale = kwargs.get("scale")
+        self.scaling = kwargs.get("scaling") if kwargs.get("sacling") is not None else 1
         self.colorkey = kwargs.get("colorkey")
 
     @property
@@ -316,7 +355,7 @@ class ImgOnLoad():
 
     @property
     def size(self):
-        return self.Image.size
+        return self.Image.size*self.scaling
 
     @property
     def Image(self):
@@ -369,6 +408,7 @@ class VideoRect(Rect):
 
 
 class Rect_with_text(Rect):
+    _text_size = None
     _text_surface = None
     _text_color = None
     _bold = False
@@ -380,12 +420,25 @@ class Rect_with_text(Rect):
         super().__init__(parent=parent, pos=pos, **kwargs)
         self.text = text
         self.rotate_text = kwargs.get("rotate_text")
-        self.text_color = kwargs.get("text_color") if kwargs.get("text_color") is not None else (0, 0, 0)
+        self.text_color = kwargs.get("text_color")
         self.text_size = kwargs.get("text_size") or 15
         self.underline = kwargs.get("underline")
         self.bold=kwargs.get("bold")
         self.panel = kwargs.get("panel") if kwargs.get("panel") is not None else True
         self.alignement = kwargs.get("alignement") if kwargs.get("alignement") is not None else "center"
+
+    @property
+    def text_size(self):
+        return self._text_size
+
+    @text_size.setter
+    def text_size(self, value):
+        if not isinstance(value, int):
+            value = int(value)
+        if self._text_size == value:
+            return
+        self._text_size = value
+        self._text_surface = None
 
     @property
     def bold(self):
@@ -419,11 +472,13 @@ class Rect_with_text(Rect):
             self.font.set_underline(True)
         if self.bold:
             self.font.set_bold(True)
-        render = self.font.render(self.text, False, self.text_color)
+        render = self.font.render(self.text,True, self.text_color)
         self.font.set_underline(False)
         self.font.set_bold(False)
         if self.rotate_text is not None:
             render = pygame.transform.rotate(render, self.rotate_text)
+        if self.alpha is not None:
+            render.set_alpha(self.alpha)
         return render
 
 
@@ -436,7 +491,7 @@ class Rect_with_text(Rect):
     @property
     def text_color(self):
         if self._text_color is None:
-            return (0,0,0)
+            return (0,0,0,255)
         return self._text_color
 
     @text_color.setter
@@ -457,6 +512,8 @@ class Rect_with_text(Rect):
         elif self.alignement == "right":
             x = self.pos[0] - self.size[0] / 2 - self.text_surface.get_width() / 2
             y = self.pos[1] + self.size[1] / 2 - self.text_surface.get_height() / 2
+
+
 
         self.screen.blit(self.text_surface, (x,y))
 
