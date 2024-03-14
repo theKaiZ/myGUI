@@ -1,13 +1,9 @@
-import matplotlib.pyplot as plt
-import matplotlib
 from os import listdir
 from os.path import join
-
 import pygame
 import pygame.gfxdraw
 import numpy as np
 from PIL import Image
-
 
 class BaseObject():
     _color = None
@@ -24,13 +20,17 @@ class BaseObject():
             self.visible = True
         self.color = kwargs.get("color")
         self.hover_color = self.set_a_color(kwargs.get("hover_color"))
-        self.add2GUI()
+        self.add2GUI(order=kwargs.get("order"))
 
-    def add2GUI(self):
+    def add2GUI(self, order=None):
         if hasattr(self, "click"):
             self.parent.clickables.append(self)
         if hasattr(self, "draw"):
-            self.parent.drawables.append(self)
+            if order is None:
+                self.parent.drawables.append(self)
+            else:
+                self.parent.drawables.insert(order,self)
+
         if hasattr(self, "update"):
             self.parent.updateables.append(self)
         if hasattr(self, "keydown"):
@@ -107,7 +107,6 @@ class BaseObject():
     def distance(p1,p2):
         return np.sqrt((p1[0]-p2[0])**2 + (p1[1]-p2[1])**2)
 
-
 class Line(BaseObject):
     _pos2 = None
     _d = None ###distance between pos1 and pos2
@@ -139,7 +138,8 @@ class Line(BaseObject):
         d = self.d*0.65
         if d1 < d and d2 < d:
             return True
-    
+
+
 class Circle(BaseObject):
 
     def __init__(self, parent, pos, radius, **kwargs):
@@ -171,6 +171,7 @@ class Circle(BaseObject):
     def py(self):
         return self.pos[1]
 
+
 class CircleButton(Circle):
     def __init__(self, parent, pos, radius, **kwargs):
         super().__init__(parent=parent, pos=pos, radius=radius, **kwargs)
@@ -182,7 +183,6 @@ class CircleButton(Circle):
     def click(self):
         if self.mouseover:
             self.action()
-
 
 
 class Rect(BaseObject):
@@ -265,10 +265,9 @@ class Rect(BaseObject):
             return False
         return True
 
-
-
-
-
+    @property
+    def under(self):
+        return self._pos + self.size -[self.sx//2,-15]
 
 class RectImage(Rect):
     def __init__(self, parent, pos, image, **kwargs):
@@ -290,9 +289,7 @@ class RectImage(Rect):
     def size(self,value):
         self._size = np.array(value)
 
-    @property
-    def under(self):
-        return self._pos + self.size -[self.sx//2,-15]
+
 
     def draw(self):
         if not self.visible:
@@ -414,6 +411,7 @@ class Rect_with_text(Rect):
     _bold = False
     _underline = False
     _text = None
+    _type_index = None
     def __init__(self, parent, pos, text, **kwargs):
         if kwargs.get("size") is None:
             kwargs["size"] = (0,0)
@@ -426,6 +424,24 @@ class Rect_with_text(Rect):
         self.bold=kwargs.get("bold")
         self.panel = kwargs.get("panel") if kwargs.get("panel") is not None else True
         self.alignement = kwargs.get("alignement") if kwargs.get("alignement") is not None else "center"
+
+    @property
+    def type_index(self):
+        if self._type_index is None:
+            return -1
+        return self._type_index
+
+    @type_index.setter
+    def type_index(self, value:int):
+        if isinstance(value, int):
+            if self._type_index == value:
+                return
+            self._type_index = value
+            self._text_surface = None
+        if isinstance(value, float):
+            if value > 1:
+                self.type_index = int(value)
+            self.type_index = int(len(self.text)*value)
 
     @property
     def text_size(self):
@@ -472,7 +488,7 @@ class Rect_with_text(Rect):
             self.font.set_underline(True)
         if self.bold:
             self.font.set_bold(True)
-        render = self.font.render(self.text,True, self.text_color)
+        render = self.font.render(self.text[:self._type_index],True, self.text_color)
         self.font.set_underline(False)
         self.font.set_bold(False)
         if self.rotate_text is not None:
