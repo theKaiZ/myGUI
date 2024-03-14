@@ -1,19 +1,21 @@
 from os import listdir
-from os.path import join
+from os.path import join, exists
 import pygame
 import pygame.gfxdraw
 import numpy as np
 from PIL import Image
 
+
 class BaseObject():
     _color = None
     _offset = None
-    _force = None ###move per frame
+    _force = None  ###move per frame
     visible = None
     mouseover = False
+
     def __init__(self, parent, pos, **kwargs):
         self.parent = parent
-        self.pos= pos
+        self.pos = pos
         for key in kwargs:
             setattr(self, key, kwargs[key])
         if self.visible is None:
@@ -29,7 +31,7 @@ class BaseObject():
             if order is None:
                 self.parent.drawables.append(self)
             else:
-                self.parent.drawables.insert(order,self)
+                self.parent.drawables.insert(order, self)
 
         if hasattr(self, "update"):
             self.parent.updateables.append(self)
@@ -56,13 +58,13 @@ class BaseObject():
         if value is None:
             return None
         if isinstance(value, float) or isinstance(value, int):
-            value = np.array([value,value,value])
+            value = np.array([value, value, value])
         value = np.array(value)
         if np.isnan(value).sum():
-            value[np.isnan(value)]=0
-        if (value>255).sum():
+            value[np.isnan(value)] = 0
+        if (value > 255).sum():
             print(f"warning, color value is out of bounds {value} > 255")
-        if (value<0).sum():
+        if (value < 0).sum():
             print(f"warning, color value is out of bounds {value} < 0")
         return value
 
@@ -74,7 +76,6 @@ class BaseObject():
     def force(self, value):
         self._force = np.array(value)
 
-
     @property
     def pos(self):
         if self._offset is not None:
@@ -84,7 +85,7 @@ class BaseObject():
     @pos.setter
     def pos(self, value):
         if value is None:
-            value = (0,0)
+            value = (0, 0)
         self._pos = np.array(value)
 
     @property
@@ -104,12 +105,14 @@ class BaseObject():
         self._color = self.set_a_color(value)
 
     @staticmethod
-    def distance(p1,p2):
-        return np.sqrt((p1[0]-p2[0])**2 + (p1[1]-p2[1])**2)
+    def distance(p1, p2):
+        return np.sqrt((p1[0] - p2[0]) ** 2 + (p1[1] - p2[1]) ** 2)
+
 
 class Line(BaseObject):
     _pos2 = None
-    _d = None ###distance between pos1 and pos2
+    _d = None  ###distance between pos1 and pos2
+
     def __init__(self, parent, pos, pos2, **kwargs):
         super().__init__(parent=parent, pos=pos, **kwargs)
         self._pos2 = pos2
@@ -123,19 +126,20 @@ class Line(BaseObject):
     def draw(self):
         if not self.visible:
             return
-        pygame.draw.line(self.screen, color=self.color, start_pos=self.pos, end_pos=self.pos2, width=2 if not self.mouseover else 4)
-        
+        pygame.draw.line(self.screen, color=self.color, start_pos=self.pos, end_pos=self.pos2,
+                         width=2 if not self.mouseover else 4)
+
     @property
     def d(self):
         if self._d is None:
             self._d = self.distance(self.pos, self.pos2)
         return self._d
-    
+
     @property
     def mouseover(self):
         d1 = self.distance(self.pos, self.parent.mouse_pos)
         d2 = self.distance(self.pos2, self.parent.mouse_pos)
-        d = self.d*0.65
+        d = self.d * 0.65
         if d1 < d and d2 < d:
             return True
 
@@ -147,13 +151,15 @@ class Circle(BaseObject):
         self.radius = radius
         self.filled = kwargs.get("filled") if kwargs.get("filled") is not None else False
         self.width = kwargs.get("width") if kwargs.get("width") is not None else 1
+
     def draw(self):
         if not self.visible:
             return
-        if self.width==1:
+        if self.width == 1:
             pygame.gfxdraw.aacircle(self.screen, self.px, self.py, self.radius, self.color)
         else:
-            pygame.draw.circle(self.screen,color=self.color,center=self.pos, radius=self.radius, width = self.width if not self.filled else 0)
+            pygame.draw.circle(self.screen, color=self.color, center=self.pos, radius=self.radius,
+                               width=self.width if not self.filled else 0)
         if self.force is not None:
             self._pos += self.force
 
@@ -167,6 +173,7 @@ class Circle(BaseObject):
     @property
     def px(self):
         return self.pos[0]
+
     @property
     def py(self):
         return self.pos[1]
@@ -180,6 +187,7 @@ class CircleButton(Circle):
     def action(self):
         if self.command is not None:
             self.command()
+
     def click(self):
         if self.mouseover:
             self.action()
@@ -192,13 +200,12 @@ class Rect(BaseObject):
     _offset = None
     _alpha = None
 
-
-    def __init__(self, parent,pos=None, **kwargs):
-        super().__init__(parent=parent,pos=pos,**kwargs)
-        #self.pos = kwargs.get("pos") if kwargs.get("pos") is not None else np.array([0, 0])
+    def __init__(self, parent, pos=None, **kwargs):
+        super().__init__(parent=parent, pos=pos, **kwargs)
+        # self.pos = kwargs.get("pos") if kwargs.get("pos") is not None else np.array([0, 0])
         self.size = kwargs.get("size")
         self.filled = kwargs.get("filled")
-        self.width=kwargs.get("width") or 0
+        self.width = kwargs.get("width") or 0
         self.alpha = kwargs.get("alpha")
 
     @property
@@ -206,7 +213,7 @@ class Rect(BaseObject):
         return self._alpha
 
     @alpha.setter
-    def alpha(self,value:int):
+    def alpha(self, value: int):
         if value == self._alpha:
             return
         self._alpha = value
@@ -215,6 +222,7 @@ class Rect(BaseObject):
     @property
     def event(self):
         return self.parent.event
+
     @property
     def size(self):
         return self._size
@@ -225,12 +233,13 @@ class Rect(BaseObject):
             self._size = self.parent.size
             return
         if isinstance(value, int) or isinstance(value, float):
-            value = (value, value)   ### now you can initialize the rect with a singular value that is taken twice
+            value = (value, value)  ### now you can initialize the rect with a singular value that is taken twice
         self._size = np.array(value)
 
     @property
     def sx(self):
         return self.size[0]
+
     @property
     def sy(self):
         return self.size[1]
@@ -242,7 +251,6 @@ class Rect(BaseObject):
                          self.color,
                          (*self.pos, *self.size),
                          self.width)
-
 
     @property
     def corners(self):
@@ -267,7 +275,8 @@ class Rect(BaseObject):
 
     @property
     def under(self):
-        return self._pos + self.size -[self.sx//2,-15]
+        return self._pos + self.size - [self.sx // 2, -15]
+
 
 class RectImage(Rect):
     def __init__(self, parent, pos, image, **kwargs):
@@ -276,27 +285,28 @@ class RectImage(Rect):
         mode = image.mode
         data = image.tobytes()
         self.image = pygame.image.frombuffer(data, size, mode)
-        super(RectImage, self).__init__(parent=parent, pos=pos,size=size, **kwargs)
+        super(RectImage, self).__init__(parent=parent, pos=pos, size=size, **kwargs)
         self.scaling = kwargs.get("scaling") if kwargs.get("scaling") is not None else 1
         self.rotation = kwargs.get("rotation")
         self.border = kwargs.get("border")
-
+        self.alignment = kwargs.get("alignment")
+        if self.alignment == "center":
+            self._pos[0] -= self.sx//2
+            self._pos[1] -= self.sy//2
     @property
     def size(self):
-        return self._size*self.scaling
+        return self._size * self.scaling
 
     @size.setter
-    def size(self,value):
+    def size(self, value):
         self._size = np.array(value)
-
-
 
     def draw(self):
         if not self.visible:
             return
         img = self.image
         if self.scaling != 1:
-            #size = (int(self.size[0]*self.scaling), int(self.size[1]*self.scaling))
+            # size = (int(self.size[0]*self.scaling), int(self.size[1]*self.scaling))
             img = pygame.transform.scale(img, self.size.astype(int))
         if self.rotation is not None:
             img = pygame.transform.rotate(img, self.rotation)
@@ -304,7 +314,7 @@ class RectImage(Rect):
             img.set_alpha(self.alpha)
         self.screen.blit(img, self.pos)
         if self.border:
-            pygame.draw.rect(self.screen,(0,0,0),(*self.pos,*self.size*self.scaling), width=1)
+            pygame.draw.rect(self.screen, (0, 0, 0), (*self.pos, *self.size * self.scaling), width=1)
 
 
 class RectImageSeries(Rect):
@@ -352,7 +362,7 @@ class ImgOnLoad():
 
     @property
     def size(self):
-        return self.Image.size*self.scaling
+        return self.Image.size * self.scaling
 
     @property
     def Image(self):
@@ -364,14 +374,15 @@ class ImgOnLoad():
 
 class VideoRect(Rect):
     _index = 0
-
+    images = []
     def __init__(self, parent, folder, **kwargs):
+        assert exists(folder), f"folder {folder} does not exist"
         self.images = [ImgOnLoad(join(folder, image), **kwargs) for image in sorted(listdir(folder))]
         super(VideoRect, self).__init__(parent=parent, size=self.images[0].size, **kwargs)
         self.border = kwargs.get("border") if kwargs.get("border") is not None else True
         self.loop = kwargs.get("loop") if kwargs.get("loop") is not None else False
-        self.color = kwargs.get("color") if kwargs.get("color") is not None else (0,0,0)
-        self.scaling =kwargs.get("scaling")
+        self.color = kwargs.get("color") if kwargs.get("color") is not None else (0, 0, 0)
+        self.scaling = kwargs.get("scaling")
 
     @property
     def index(self):
@@ -380,7 +391,7 @@ class VideoRect(Rect):
     @index.setter
     def index(self, value):
         n_images = len(self.images)
-        if value <0 and self.loop:
+        if value < 0 and self.loop:
             self._index = n_images - value
         if value >= n_images:
             if self.loop:
@@ -388,20 +399,19 @@ class VideoRect(Rect):
         else:
             self._index = value
 
-
     def draw(self):
         if not self.visible:
             return
         if self.scaling is not None:
             size = (int(self.size[0] * self.scaling), int(self.size[1] * self.scaling))
-            self.screen.blit(pygame.transform.scale(self.images[self.index].img,size), self.pos)
+            self.screen.blit(pygame.transform.scale(self.images[self.index].img, size), self.pos)
         else:
             self.screen.blit(self.images[self.index].img, self.pos)
         self.index += 1
         if not self.border:
             return
         pygame.draw.rect(self.screen, self.color, (self.pos[0], self.pos[1], self.size[0], self.size[1]),
-                             width=1)
+                         width=1)
 
 
 class Rect_with_text(Rect):
@@ -412,16 +422,17 @@ class Rect_with_text(Rect):
     _underline = False
     _text = None
     _type_index = None
+
     def __init__(self, parent, pos, text, **kwargs):
         if kwargs.get("size") is None:
-            kwargs["size"] = (0,0)
+            kwargs["size"] = (0, 0)
         super().__init__(parent=parent, pos=pos, **kwargs)
         self.text = text
         self.rotate_text = kwargs.get("rotate_text")
         self.text_color = kwargs.get("text_color")
         self.text_size = kwargs.get("text_size") or 15
         self.underline = kwargs.get("underline")
-        self.bold=kwargs.get("bold")
+        self.bold = kwargs.get("bold")
         self.panel = kwargs.get("panel") if kwargs.get("panel") is not None else True
         self.alignement = kwargs.get("alignement") if kwargs.get("alignement") is not None else "center"
 
@@ -432,7 +443,7 @@ class Rect_with_text(Rect):
         return self._type_index
 
     @type_index.setter
-    def type_index(self, value:int):
+    def type_index(self, value: int):
         if isinstance(value, int):
             if self._type_index == value:
                 return
@@ -441,7 +452,7 @@ class Rect_with_text(Rect):
         if isinstance(value, float):
             if value > 1:
                 self.type_index = int(value)
-            self.type_index = int(len(self.text)*value)
+            self.type_index = int(len(self.text) * value)
 
     @property
     def text_size(self):
@@ -459,8 +470,9 @@ class Rect_with_text(Rect):
     @property
     def bold(self):
         return self._bold
+
     @bold.setter
-    def bold(self,value):
+    def bold(self, value):
         if value is None:
             return
         if value == self._bold:
@@ -477,8 +489,8 @@ class Rect_with_text(Rect):
         return self._text
 
     @text.setter
-    def text(self,string):
-        if string== self.text:
+    def text(self, string):
+        if string == self.text:
             return
         self._text = string
         self._text_surface = None
@@ -488,7 +500,7 @@ class Rect_with_text(Rect):
             self.font.set_underline(True)
         if self.bold:
             self.font.set_bold(True)
-        render = self.font.render(self.text[:self._type_index],True, self.text_color)
+        render = self.font.render(self.text[:self._type_index], True, self.text_color)
         self.font.set_underline(False)
         self.font.set_bold(False)
         if self.rotate_text is not None:
@@ -496,7 +508,6 @@ class Rect_with_text(Rect):
         if self.alpha is not None:
             render.set_alpha(self.alpha)
         return render
-
 
     @property
     def text_surface(self):
@@ -507,7 +518,7 @@ class Rect_with_text(Rect):
     @property
     def text_color(self):
         if self._text_color is None:
-            return (0,0,0,255)
+            return (0, 0, 0, 255)
         return self._text_color
 
     @text_color.setter
@@ -522,22 +533,20 @@ class Rect_with_text(Rect):
         if self.alignement == "center":
             x = self.pos[0] + self.size[0] / 2 - self.text_surface.get_width() / 2
             y = self.pos[1] + self.size[1] / 2 - self.text_surface.get_height() / 2
-        elif self.alignement =="left":
+        elif self.alignement == "left":
             x = self.pos[0]
             y = self.pos[1] + self.size[1] / 2 - self.text_surface.get_height() / 2
         elif self.alignement == "right":
             x = self.pos[0] - self.size[0] / 2 - self.text_surface.get_width() / 2
             y = self.pos[1] + self.size[1] / 2 - self.text_surface.get_height() / 2
 
-
-
-        self.screen.blit(self.text_surface, (x,y))
+        self.screen.blit(self.text_surface, (x, y))
 
 
 class Button(Rect_with_text):
     active = False
 
-    def __init__(self, parent, pos, size, text = "", **kwargs):
+    def __init__(self, parent, pos, size, text="", **kwargs):
         self.command = kwargs.get("command")
         if kwargs.get("color") is None:
             kwargs["color"] = 150
@@ -548,10 +557,11 @@ class Button(Rect_with_text):
         if not self.visible:
             return
         super(Button, self).draw()
-        pygame.draw.rect(self.screen,(200,200,200), (*self.pos, *self.size), width=2)
+        pygame.draw.rect(self.screen, (200, 200, 200), (*self.pos, *self.size), width=2)
         self.screen.blit(self.text_surface,
                          (self.pos[0] + self.size[0] / 2 - self.text_surface.get_width() / 2,
                           self.pos[1] + self.size[1] / 2 - self.text_surface.get_height() / 2))
+
     def click(self):
         if self.mouseover and self.parent.event.button == 1:
             self.action()
@@ -564,7 +574,7 @@ class Button(Rect_with_text):
 class Textfeld(Rect_with_text):
 
     def __init__(self, parent, pos, size, key, **kwargs):
-        super().__init__(parent=parent, pos=pos, size=size, text="",**kwargs)
+        super().__init__(parent=parent, pos=pos, size=size, text="", **kwargs)
         self.key = key
         self.index = kwargs.get("index")
         self.text_color = kwargs.get("text_color")
@@ -584,7 +594,7 @@ class Textfeld(Rect_with_text):
     def value(self):
         if self.index is None:
             return getattr(self.parent, self.key)
-        return getattr(self.parent,self.key)[self.index]
+        return getattr(self.parent, self.key)[self.index]
 
     @value.setter
     def value(self, val):
@@ -592,8 +602,6 @@ class Textfeld(Rect_with_text):
             setattr(self.parent, self.key, val)
             return
         getattr(self.parent, self.key)[self.index] = val
-
-
 
     @property
     def text_surface(self):
@@ -622,7 +630,7 @@ class ScrollTextfeld(Textfeld):
     def click(self):
         if not self.mouseover:
             return
-        if self.event.button == 4:   ### Scroll wheel up
+        if self.event.button == 4:  ### Scroll wheel up
             self.increase()
         elif self.event.button == 5:  ### Scroll wheel down
             self.decrease()
@@ -643,7 +651,6 @@ class ScrollTextfeld(Textfeld):
         self._text_surface = None
         self.parent.toggle_update = True
 
-
     def increase(self):
         if self.operator == "+":
             new_value = self.value + self.change_value
@@ -663,5 +670,3 @@ class ScrollTextfeld(Textfeld):
             if new_value < self.limits[0]:
                 new_value = self.limits[0]
         self.value = new_value
-
-
