@@ -220,6 +220,10 @@ class Rect(BaseObject):
         self._text_surface = None
 
     @property
+    def center(self):
+        return self.pos +self.size//2
+
+    @property
     def event(self):
         return self.parent.event
 
@@ -423,6 +427,8 @@ class Rect_with_text(Rect):
     _text = None
     _type_index = None
 
+    _default_text_size = 25
+
     def __init__(self, parent, pos, text, **kwargs):
         if kwargs.get("size") is None:
             kwargs["size"] = (0, 0)
@@ -430,11 +436,15 @@ class Rect_with_text(Rect):
         self.text = text
         self.rotate_text = kwargs.get("rotate_text")
         self.text_color = kwargs.get("text_color")
-        self.text_size = kwargs.get("text_size") or 15
+        self.text_size = kwargs.get("text_size") or self._default_text_size
         self.underline = kwargs.get("underline")
         self.bold = kwargs.get("bold")
         self.panel = kwargs.get("panel") if kwargs.get("panel") is not None else True
         self.alignement = kwargs.get("alignement") if kwargs.get("alignement") is not None else "center"
+        self.type_index = kwargs.get("type_index")
+    @classmethod
+    def set_default_text_size(cls, value):
+        cls._default_text_size = int(value)
 
     @property
     def type_index(self):
@@ -444,6 +454,9 @@ class Rect_with_text(Rect):
 
     @type_index.setter
     def type_index(self, value: int):
+        if value is None:
+            self._type_index = None
+            return
         if isinstance(value, int):
             if self._type_index == value:
                 return
