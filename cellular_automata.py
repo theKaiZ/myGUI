@@ -4,6 +4,7 @@ from myGUI.Slide import Presenter, Slide
 import numpy as np
 from time import time
 from PIL import Image
+from numba import njit, prange
 
 
 def generate_ruleset(number):
@@ -19,7 +20,6 @@ def generate_ruleset(number):
     return binarray
 
 
-from numba import njit, prange
 
 
 @njit(cache=True)

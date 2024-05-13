@@ -25,6 +25,7 @@ class BaseObject():
         self.add2GUI(order=kwargs.get("order"))
 
     def add2GUI(self, order=None):
+        self.parent.last_item = self
         if hasattr(self, "click"):
             self.parent.clickables.append(self)
         if hasattr(self, "draw"):
@@ -108,6 +109,14 @@ class BaseObject():
     def distance(p1, p2):
         return np.sqrt((p1[0] - p2[0]) ** 2 + (p1[1] - p2[1]) ** 2)
 
+    @property
+    def px(self):
+        return self._pos[0]
+
+    @property
+    def py(self):
+        return self._pos[1]
+
 
 class Line(BaseObject):
     _pos2 = None
@@ -148,7 +157,7 @@ class Circle(BaseObject):
 
     def __init__(self, parent, pos, radius, **kwargs):
         super().__init__(parent=parent, pos=pos, **kwargs)
-        self.radius = radius
+        self.radius = int(radius)
         self.filled = kwargs.get("filled") if kwargs.get("filled") is not None else False
         self.width = kwargs.get("width") if kwargs.get("width") is not None else 1
 
@@ -160,6 +169,8 @@ class Circle(BaseObject):
         else:
             pygame.draw.circle(self.screen, color=self.color, center=self.pos, radius=self.radius,
                                width=self.width if not self.filled else 0)
+
+
         if self.force is not None:
             self._pos += self.force
 
@@ -172,11 +183,11 @@ class Circle(BaseObject):
 
     @property
     def px(self):
-        return self.pos[0]
+        return int(self.pos[0])
 
     @property
     def py(self):
-        return self.pos[1]
+        return int(self.pos[1])
 
 
 class CircleButton(Circle):
@@ -247,6 +258,8 @@ class Rect(BaseObject):
     @property
     def sy(self):
         return self.size[1]
+
+
 
     def draw(self):
         if not self.visible:
@@ -414,7 +427,11 @@ class VideoRect(Rect):
         self.index += 1
         if not self.border:
             return
-        pygame.draw.rect(self.screen, self.color, (self.pos[0], self.pos[1], self.size[0], self.size[1]),
+        sx, sy = self.size
+        if self.scaling is not None:
+            sx =int(sx * self.scaling)
+            sy =int(sy * self.scaling)
+        pygame.draw.rect(self.screen, self.color, (self.pos[0], self.pos[1], sx, sy),
                          width=1)
 
 

@@ -67,12 +67,18 @@ class Formula(Plot_object):
 
     def __init__(self, parent, formula: str, **kwargs):
         self.formula = formula
+        self.ha = kwargs.get("ha") if kwargs.get("ha") is not None else "left"
+
         super().__init__(parent=parent, **kwargs)
         self.remove_background = True
+
+    def render_surface(self):
+        super().render_surface()
+        plt.close(self.fig)
 
     def manual_init(self):
         self.ax.set_xlim(0, 1)
         self.ax.set_ylim(0, 1)
-        self.ax.text(0.0, .5, self.formula, size=self.textsize, ha="left", va="bottom")
+        self.ax.text(0.0, .5, self.formula, size=self.textsize, ha=self.ha, va="bottom")
         self.ax.axis("off")
         self.pos -= (self.size[0] // 8, self.size[1] // 2)

@@ -7,6 +7,7 @@ import numpy as np
 class Slide(Rect):
     _pos = None
     _size = None
+    last_item = None
     def __init__(self, parent, **kwargs):
         super().__init__(parent=parent, **kwargs)
         self.actions = []  # actions taken on clicks
