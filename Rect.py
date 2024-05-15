@@ -135,7 +135,11 @@ class Line(BaseObject):
     def draw(self):
         if not self.visible:
             return
-        pygame.draw.line(self.screen, color=self.color, start_pos=self.pos, end_pos=self.pos2,
+        width=1
+        if width==1:
+            pygame.draw.aaline(self.screen, color=self.color, start_pos=self.pos, end_pos=self.pos2)
+        else:
+            pygame.draw.line(self.screen, color=self.color, start_pos=self.pos, end_pos=self.pos2,
                          width=2 if not self.mouseover else 4)
 
     @property
@@ -273,7 +277,7 @@ class Rect(BaseObject):
     def corners(self):
         if self._corners is not None:
             return self._corners
-        self._corners = np.concatenate(([self.pos], [self.pos + self.size]))
+        self._corners = np.concatenate(([self._pos], [self._pos + self.size]))
         return self._corners
 
     @property
