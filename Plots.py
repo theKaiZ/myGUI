@@ -9,7 +9,7 @@ import pygame
 
 class Plot_object(Rect):
     _surface = None
-    fig = None
+    _fig = None
     ax = None
 
     def __init__(self, parent, **kwargs):
@@ -21,11 +21,24 @@ class Plot_object(Rect):
         else:
             self.setup()
         self.manual_init()
+
+
+    @property
+    def fig(self):
+        return self._fig
+
+    @fig.setter
+    def fig(self, figureobject):
+        if self._fig is not None:
+            plt.close(self._fig)
+        self._fig = figureobject
         if self.remove_background:
-            self.fig.set_facecolor((0, 0, 0, 0))
-            for ax in self.fig.get_axes():
+            self._fig.set_facecolor((0, 0, 0, 0))
+            for ax in self._fig.get_axes():
                 ax.set_facecolor((0, 0, 0, 0))
-        self.fig.tight_layout()
+        self._fig.tight_layout()
+        self._surface = None
+
 
     def manual_init(self):
         pass
