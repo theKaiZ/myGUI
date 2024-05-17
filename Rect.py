@@ -277,7 +277,7 @@ class Rect(BaseObject):
     def corners(self):
         if self._corners is not None:
             return self._corners
-        self._corners = np.concatenate(([self._pos], [self._pos + self.size]))
+        self._corners = np.concatenate(([self.pos], [self.pos + self.size]))
         return self._corners
 
     @property

@@ -25,6 +25,8 @@ class Plot_object(Rect):
 
     @property
     def fig(self):
+        if self._fig is None:
+            self.setup()
         return self._fig
 
     @fig.setter
