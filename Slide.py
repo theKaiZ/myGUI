@@ -1,8 +1,9 @@
-from myGUI.Rect import Button, Rect
+from myGUI.Rect import Button, Rect, Rect_with_text
 from myGUI.Plots import Plot_object
 from myGUI.GUI import myGUI
 import pygame
 import numpy as np
+from time import time
 
 class Slide(Rect):
     _pos = None
@@ -123,10 +124,14 @@ class S1(Slide):
         p = myPlot(self, pos=(300,300),size=(400,200))
         self.R = Rect(self, pos=(100, 200), size=(50, 50))
         Button(self, (260,100), (50,50), "Hallo",command=lambda:self.R.__setattr__("color", np.random.randint((235,235,235))))
+        Rect_with_text(self, (400,50), f"{self.parent.time//60}:{str(self.parent.time).zfill(2)}")
         # P =Plot_object(self.parent,(0,00),(300,300))
         self.actions.append(lambda: setattr(p,"do",p.anim))
         self.actions.append(lambda: self.R.__setattr__("color",(10,150,30)))
 
+    def start_timer(self):
+        if self.parent.timer is None:
+            self.parent.timer = time()
 
 
 class S2(Slide):
@@ -148,13 +153,24 @@ class Presenter(myGUI):
     size=np.array((800,800))
     color=(50,50,100)
     _color_rect=None
+    _time = None
     #mode = pygame.locals.FULLSCREEN
+    @property
+    def time(self):
+        if self._time is None:
+            self._time = time()
+        return int(time()-self._time)
+
+    @property
+    def min(self):
+        return self.time//60
+
     def manual_init(self):
         self.slides = [lambda: S1(self),
                        lambda: S2(self),
                        #lambda: S3(self)
                        ]
-        print(self.updateables)
+
     def setup_buttons(self):
         Button(self, self.size -(100, 50), (100, 50), "NEXT", command=lambda: self.next, text_size=20, hover_color=(0,255,0))
 

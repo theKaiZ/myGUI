@@ -377,6 +377,7 @@ class ImgOnLoad():
         mode = img.mode
         data = img.tobytes()
         self._img = pygame.image.frombuffer(data, size, mode)
+        img.close()   ###try to solve the ram problem
         if self.colorkey is not None:
             self._img.set_colorkey(self.colorkey)
         return self._img
