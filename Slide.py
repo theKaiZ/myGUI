@@ -157,13 +157,19 @@ class Presenter(myGUI):
     #mode = pygame.locals.FULLSCREEN
     @property
     def time(self):
+        """the time function is supposed to be called when the first slide is opened"""
         if self._time is None:
             self._time = time()
-        return int(time()-self._time)
+        return int(self._time)
 
     @property
     def min(self):
-        return self.time//60
+        """returns the time in minutes since the first slide was opened"""
+        return int(time()-self.time)//60
+
+    @property
+    def time_str(self):
+        return f"{self.min}:{str((int(time()-self.time))%60).zfill(2)}"
 
     def manual_init(self):
         self.slides = [lambda: S1(self),
