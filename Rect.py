@@ -214,6 +214,7 @@ class Rect(BaseObject):
     _size = None
     _offset = None
     _alpha = None
+    _surface = None
 
     def __init__(self, parent, pos=None, **kwargs):
         super().__init__(parent=parent, pos=pos, **kwargs)
@@ -233,7 +234,7 @@ class Rect(BaseObject):
             return
         self._alpha = value
         self._text_surface = None
-
+        self._surface = None
     @property
     def center(self):
         return self.pos +self.size//2
@@ -268,10 +269,20 @@ class Rect(BaseObject):
     def draw(self):
         if not self.visible:
             return
-        pygame.draw.rect(self.screen,
+        if self.alpha is None:
+            pygame.draw.rect(self.screen,
                          self.color,
                          (*self.pos, *self.size),
                          self.width)
+            return
+        self.screen.blit(self.surface, self.pos)
+
+    @property
+    def surface(self):
+        if self._surface is None:
+            self._surface = pygame.Surface(self.size, pygame.SRCALPHA)
+            pygame.draw.rect(self._surface, (*self.color,self.alpha), (0,0,*self.size), self.width)
+        return self._surface
 
     @property
     def corners(self):
@@ -459,6 +470,10 @@ class Rect_with_text(Rect):
         self.rotate_text = kwargs.get("rotate_text")
         self.text_color = kwargs.get("text_color")
         self.text_size = kwargs.get("text_size") or self._default_text_size
+        if "\n" in text:
+            self.text = text.rsplit("\n",1)[0]
+            Rect_with_text(parent, np.array(pos)+[0,self.text_size*1.2], text.rsplit("\n",1)[1], **kwargs)
+
         self.underline = kwargs.get("underline")
         self.bold = kwargs.get("bold")
         self.panel = kwargs.get("panel") if kwargs.get("panel") is not None else True
