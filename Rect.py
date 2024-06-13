@@ -471,8 +471,8 @@ class Rect_with_text(Rect):
         self.text_color = kwargs.get("text_color")
         self.text_size = kwargs.get("text_size") or self._default_text_size
         if "\n" in text:
-            self.text = text.rsplit("\n",1)[0]
-            Rect_with_text(parent, np.array(pos)+[0,self.text_size*1.2], text.rsplit("\n",1)[1], **kwargs)
+            self.text = text.split("\n",1)[0]
+            Rect_with_text(parent, np.array(pos)+[0,self.text_size*1.2], text.split("\n",1)[1], **kwargs)
 
         self.underline = kwargs.get("underline")
         self.bold = kwargs.get("bold")
