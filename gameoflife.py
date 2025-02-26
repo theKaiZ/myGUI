@@ -5,9 +5,13 @@ import numpy as np
 import pygame
 from numba import njit, prange
 from functools import lru_cache
+from time import time
+
+
 
 class golpanel(Rect):
     _surface = None
+    real_fps = None
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.dx = self.size[0] // self.cells.shape[0]
@@ -43,7 +47,7 @@ class golpanel(Rect):
     def surface(self):
         if self._surface is not None:
             return self._surface
-        #t = time()
+        t = time()
         surf = self.surf
         nx, ny = self.cells.shape
         for x in range(nx):
@@ -58,7 +62,8 @@ class golpanel(Rect):
         #if self.s >1:
         surf = pygame.transform.scale(surf, tuple(self.size))
         self._surface = surf
-        #print(f"{time() - t:.2f}, {self.cells.shape}")
+        self.real_fps = 1/(time()-t)
+        #print(f"{self.real_fps:.1f} FPS, {self.cells.shape}")
         return self._surface
 
     def draw_cells(self):

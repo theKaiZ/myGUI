@@ -4,7 +4,7 @@ import pygame
 import pygame.gfxdraw
 import numpy as np
 from PIL import Image
-
+from time import time
 
 class BaseObject():
     _color = None
@@ -23,6 +23,11 @@ class BaseObject():
         self.color = kwargs.get("color")
         self.hover_color = self.set_a_color(kwargs.get("hover_color"))
         self.add2GUI(order=kwargs.get("order"))
+        self.after_init()
+
+    def after_init(self):
+        #### just for inheritance
+        pass
 
     def add2GUI(self, order=None):
         self.parent.last_item = self
@@ -156,6 +161,41 @@ class Line(BaseObject):
         if d1 < d and d2 < d:
             return True
 
+class Triangle(BaseObject):
+    width=1
+    def __init__(self, parent, pos, pos2, pos3, **kwargs):
+        super().__init__(parent=parent, pos=pos, **kwargs)
+        self._pos2 = pos2
+        self._pos3 = pos3
+
+    @property
+    def pos2(self):
+        if self._offset is not None:
+            return self._pos2 + self.parent.pos + self._offset
+        return self._pos2 + self.parent.pos
+
+    @property
+    def pos3(self):
+        if self._offset is not None:
+            return self._pos3 + self.parent.pos + self._offset
+        return self._pos3 + self.parent.pos
+
+    def draw(self):
+        if not self.visible:
+            return
+        if self.width==1:
+            pygame.draw.aaline(self.screen, color=self.color, start_pos=self.pos, end_pos=self.pos2)
+            pygame.draw.aaline(self.screen, color=self.color, start_pos=self.pos, end_pos=self.pos3)
+            pygame.draw.aaline(self.screen, color=self.color, start_pos=self.pos2, end_pos=self.pos3)
+        else:
+            pygame.draw.line(self.screen, color=self.color, start_pos=self.pos, end_pos=self.pos2,
+                         width=self.width)
+            pygame.draw.line(self.screen, color=self.color, start_pos=self.pos, end_pos=self.pos3,
+                         width=self.width)
+            pygame.draw.line(self.screen, color=self.color, start_pos=self.pos2, end_pos=self.pos3,
+                         width=self.width)
+
+
 
 class Circle(BaseObject):
 
@@ -192,6 +232,31 @@ class Circle(BaseObject):
     @property
     def py(self):
         return int(self.pos[1])
+
+
+class AnimatedCircle(Circle):
+    ticks = 1
+    max_ticks=20
+    def update(self):
+        print("tick")
+        if self.mouseover and self.ticks<self.max_ticks:
+            self.ticks+=1
+        if not self.mouseover and self.ticks>1:
+            self.ticks-=1
+
+    def draw(self):
+        if not self.visible:
+            return
+        radius = int(self.ticks/self.max_ticks*self.radius)
+        if self.width == 1:
+            pygame.gfxdraw.aacircle(self.screen, self.px, self.py, radius, self.color)
+        else:
+            pygame.draw.circle(self.screen, color=self.color, center=self.pos, radius=radius,
+                               width=self.width if not self.filled else 0)
+
+
+        if self.force is not None:
+            self._pos += self.force
 
 
 class CircleButton(Circle):
@@ -470,9 +535,12 @@ class Rect_with_text(Rect):
         self.rotate_text = kwargs.get("rotate_text")
         self.text_color = kwargs.get("text_color")
         self.text_size = kwargs.get("text_size") or self._default_text_size
-        if "\n" in text:
-            self.text = text.split("\n",1)[0]
-            Rect_with_text(parent, np.array(pos)+[0,self.text_size*1.2], text.split("\n",1)[1], **kwargs)
+        print(text)
+        if self.text is None:
+            self.text=""
+        if "\n" in self.text:
+            self.text = self.text.split("\n",1)[0]
+            Rect_with_text(parent, np.array(pos)+[0,self.text_size*1.2], self.text.split("\n",1)[1], **kwargs)
 
         self.underline = kwargs.get("underline")
         self.bold = kwargs.get("bold")

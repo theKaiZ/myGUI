@@ -10,7 +10,7 @@ def add(obj, var, val):
 
 class myGUI():
     timestamp = 0
-    FPS = 5
+    FPS = 60
     running = True
     drawables = []
     clickables = []
@@ -77,6 +77,7 @@ class myGUI():
 
         ScrollTextfeld(self, (0, 0), (100, 100), "test3", change_value=1, limits=[1, 10], operator="+", index=0)
         Circle(self, (600,100), 30, filled=True, hover_color=(255,255,0))
+        AnimatedCircle(self, (450,50), 40, filled=True, color=(255,0,0))
         #CircleButton(self, (600,150), 30, filled=True, command=lambda:print("true"))
     def run(self):
         while self.mainloop():
@@ -122,6 +123,7 @@ class myGUI():
             self.timestamp = time()
             self.background()
             self.draw()
+            self.update()
             if self.toggle_update:
                 self.update()
             pygame.display.flip()

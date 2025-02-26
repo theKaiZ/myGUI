@@ -36,7 +36,7 @@ def gauss(zl=-14, zr=-3, zn=200, z0=-10, sigma=2, d=0):
     """
     z = np.linspace(zl, zr, zn)
     assert (z < z0).sum() and (z > z0).sum(), f"z0 must be between {z[0]} and {z[-1]}, not {z0}"
-    g = gauss_jit(z=z, z0=z0, sigma=sigma, d=d) + gauss_jit(z=z, z0 = z0+25, sigma=sigma*1.5, d=d)
+    g = gauss_jit(z=z, z0=z0, sigma=sigma, d=d) +  gauss_jit(z=z, z0 = z0+5*sigma, sigma=sigma*3.5, d=d)
     return z, g / g.max()
 
 
@@ -52,13 +52,22 @@ def get_color(value):
 def next_generation(c, newgen, z, gau):
     xmax = c.shape[0]
     ymax = c.shape[1]
-    n = 3  ## should be smaller than 7
+    n = 5  ## should be smaller than 7
     for x in prange(xmax):
         for y in prange(ymax):
             dasum = 0
             for i in range(-n, n + 1):
                 for j in range(-n, n + 1):
-                    dasum += c[(x + i) % xmax, (y + j) % ymax]
+                    f = abs(i)+abs(j)
+                    if f==2: p = 0.1
+                    elif f==3: p = 0.3
+                    elif f==4: p = 0.5
+                    elif f== 5: p =0.7
+                    elif f==6:p=1
+                    elif f==7: p=1.2
+                    elif f==8: p =.3
+                    else: p=0
+                    dasum += p*c[(x + i) % xmax, (y + j) % ymax]
             newgen[x, y] = gau[(z <= dasum).sum()]
 
 
@@ -103,7 +112,7 @@ class gol2slide(GoLSlide):
         self.line.set_xdata(z)
         self.line.set_ydata(g)
         self.plot._surface = None
-        self.fill_random()
+        #self.fill_random()
 
     @property
     def zl(self):
@@ -128,15 +137,15 @@ class gol2slide(GoLSlide):
 
 class gol2gui(GOLGUI):
     FPS = 5
-    _sigma = 3.05
-    _d = 0.99
-    _z0 = 7.25
+    _sigma = 1.3
+    _d = -0.0
+    _z0 = 16
 
     def manual_init(self):
         self.slides = [lambda: gol2slide(self)]
-        ScrollTextfeld(self, self.size - (800, 30), (50, 30), "z0", 0.25, [1, 100])
-        ScrollTextfeld(self, self.size - (850, 30), (50, 30), "sigma", 0.05, [0.05, 12])
-        ScrollTextfeld(self, self.size - (900, 30), (50, 30), "d", 0.01, [-.99, 0.99])
+        ScrollTextfeld(self, self.size - (900, 30), (100, 30), "z0", 0.25, [1, 100])
+        ScrollTextfeld(self, self.size - (1000, 30), (100, 30), "sigma", 0.05, [0.05, 12])
+        ScrollTextfeld(self, self.size - (1100, 30), (100, 30), "d", 0.01, [-.99, 0.99])
         ScrollTextfeld(self, self.size - (550, 30), (50, 30), "dim", 10, [10, 300])
         ScrollTextfeld(self, self.size - (600, 30), (50, 30), "seed", 1, [0, 10000])
         ScrollTextfeld(self, self.size - (500, 30), (50, 30), "FPS", 1, [1, 50])
