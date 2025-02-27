@@ -102,7 +102,7 @@ class golpanel2(golpanel):
     def surface(self):
         if self._surface is not None:
             return self._surface
-        #t = time()
+        t = time()
         #surf = self.surf
         #nx, ny = self.cells.shape
         #for x in range(nx):
@@ -118,17 +118,17 @@ class golpanel2(golpanel):
             w, h = im.shape
             ret = np.empty((w, h, 3), dtype=np.uint8)
             ret[:, :, 2] = ret[:, :, 1] = ret[:, :, 0] = im
-
+            ret[:,:,0]=ret[:,:,0]/2
             return ret
         surf = pygame.surfarray.make_surface(gray(self.cells*255/self.cells.max()))
         #self._surface = pygame.transform.smoothscale(surf, tuple(self.size))
         #if self.s >1:
         surf = pygame.transform.scale(surf, tuple(self.size))
+        surf.set_colorkey((0,0,0))
         self._surface = surf
         #self.real_fps = 1/(time()-t)
         #print(f"{self.real_fps:.1f} FPS, {self.cells.shape}")
         return self._surface
-
 class gol2slide(GoLSlide):
     generation = 0
     animal_name=None
@@ -141,14 +141,14 @@ class gol2slide(GoLSlide):
         Button(self, (10, 10), (80, 30), "random", command=lambda: self.fill_random())
         self.name_fied = Textfeld(self,(150,30), size=(300,0), key="animal_name")
         self.cells = np.zeros((s, s))#, dtype="float32")
-        golpanel2(parent=self, pos=(10, 50), size=(600, 600))
+        golpanel2(parent=self, pos=(10, 50), size=(800, 800))
         self.fill_random()
 
-        self.plot_kernel = Plot_object(self, pos=(650,100),size=(300,300), remove_background=True)
+        self.plot_kernel = Plot_object(self, pos=(800,100),size=(300,300), remove_background=True)
         self.plot_kernel.ax.imshow(self.parent.kernel)
         self.plot_kernel.ax.axis("off")
 
-        self.plot_growth_fun = Plot_object(self,pos=(950,100), size=(300,300), remove_background=True)
+        self.plot_growth_fun = Plot_object(self,pos=(1150,100), size=(300,300), remove_background=True)
         self.plot_growth_fun.ax.plot(*self.parent.growth_fun)
 
         self.parent.toggle_update = True
@@ -168,7 +168,6 @@ class gol2slide(GoLSlide):
         self.cells = np.zeros(self.cells.shape)#,dtype="float32")
         if name == "random":
             name = random.choice(list(animaldict.keys()))
-
         animal = animaldict[name]
         self.animal_name = name
         self.name_fied._text_surface = None
@@ -224,6 +223,9 @@ class gol2slide(GoLSlide):
         return 100
 
     def update(self):
+        if self.cells.sum()==0:
+            print("tot")
+            return
         if self.generation < 300:
             print(self.generation)
             np.save(f"data/gen{self.generation:04}.npy",self.cells)
@@ -244,25 +246,27 @@ class gol2slide(GoLSlide):
 
 
 class gol2gui(GOLGUI):
-    FPS = 30
-    _sigma = 0.017
-    _mu = 0.15  ### growth rate
-    _R = 13 #cells per kernel radius
+    FPS = 100
+    _sigma = 0.063
+    _mu = 0.57  ### growth rate
+    _R = 27 #cells per kernel radius
     _T = 10 ###steps per time unit
-    _dim = 100
+    _dim = 600
     _kernel = None
     _growth_fun = None
     _seed = 22
+    size=np.array([1780,900])
     _b = np.array([1])
 
     def manual_init(self):
         self.slides = [lambda: gol2slide(self)]
         ScrollTextfeld(self, (1000,450), (100, 30), "sigma", 0.001, [0.001, 12])
-        ScrollTextfeld(self, (850, 450), (50, 30), "R", 1, [3, 30])
+        ScrollTextfeld(self, (900, 450), (50, 30), "R", 1, [3, 30])
+        ScrollTextfeld(self, (950, 450), (50, 30), "T", 1, [1, 100])
         ScrollTextfeld(self, (1100,450), (100, 30), "mu", .01, [0.01, 1])
         ScrollTextfeld(self, self.size - (550, 30), (50, 30), "dim", 20, [10, 600])
         ScrollTextfeld(self, self.size - (600, 30), (50, 30), "seed", 1, [0, 10000])
-        ScrollTextfeld(self, self.size - (500, 30), (50, 30), "FPS", 1, [1, 50])
+        ScrollTextfeld(self, self.size - (500, 30), (50, 30), "FPS", 1, [1, 100])
 
 
     @property

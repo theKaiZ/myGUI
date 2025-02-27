@@ -539,8 +539,8 @@ class Rect_with_text(Rect):
         if self.text is None:
             self.text=""
         if "\n" in self.text:
-            self.text = self.text.split("\n",1)[0]
             Rect_with_text(parent, np.array(pos)+[0,self.text_size*1.2], self.text.split("\n",1)[1], **kwargs)
+            self.text = self.text.split("\n",1)[0]
 
         self.underline = kwargs.get("underline")
         self.bold = kwargs.get("bold")
