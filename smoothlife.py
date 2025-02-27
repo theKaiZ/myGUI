@@ -94,15 +94,15 @@ class golpanel2(golpanel):
                     p[0]-= gridsize
                 if p[1]>=gridsize:
                     p[1]-=gridsize
-                self.parent.cells[p[0],p[1]] = 1
-            print("click", pos_on_grid)
+                self.parent.cells[p[0],p[1]] += np.random.random()
+                self.parent.cells[p[0],p[1]] = np.clip(self.parent.cells[p[0],p[1]],0,1)
 
 
     @property
     def surface(self):
         if self._surface is not None:
             return self._surface
-        t = time()
+        #t = time()
         #surf = self.surf
         #nx, ny = self.cells.shape
         #for x in range(nx):
@@ -125,12 +125,13 @@ class golpanel2(golpanel):
         #if self.s >1:
         surf = pygame.transform.scale(surf, tuple(self.size))
         self._surface = surf
-        self.real_fps = 1/(time()-t)
-        print(f"{self.real_fps:.1f} FPS, {self.cells.shape}")
+        #self.real_fps = 1/(time()-t)
+        #print(f"{self.real_fps:.1f} FPS, {self.cells.shape}")
         return self._surface
+
 class gol2slide(GoLSlide):
     generation = 0
-    animal_name=""
+    animal_name=None
 
 
     def manual_init(self):
@@ -167,17 +168,10 @@ class gol2slide(GoLSlide):
         self.cells = np.zeros(self.cells.shape)#,dtype="float32")
         if name == "random":
             name = random.choice(list(animaldict.keys()))
+
         animal = animaldict[name]
         self.animal_name = name
         self.name_fied._text_surface = None
-
-        from lifeforms import lifeforms
-        #cells = np.array(lifeforms[name]["cells"])
-        #self.parent.R = lifeforms[name]["R"]
-        #self.parent.T = lifeforms[name]["T"]
-        #self.parent.mu = lifeforms[name]["m"]
-        #self.parent.sigma = lifeforms[name]["s"]
-        #self.parent.b = lifeforms[name]["b"]
         cells = np.array(animal["cells"])
         self.parent.R = animal["R"]
         self.parent.T = animal["T"]
@@ -202,13 +196,17 @@ class gol2slide(GoLSlide):
         #self.fill_random()
 
     def keydown(self):
+        if self.parent.event.key== pygame.K_F2:
+            if self.animal_name is not None:
+                self.load_pattern(self.animal_name)
+                return
+            self.fill_random()
+            return
+
         if self.parent.event.key==pygame.K_r:
+            self.animal_name = None
             self.fill_random()
 
-        if self.parent.event.key==pygame.K_k:
-            R = 13
-            np.linalg.norm(np.asarray(np.ogrid[-R:R, -R:R], dtype=object) + 1) / R
-            self.parent._kernel = None
         if self.parent.event.key== pygame.K_o:
             self.load_pattern("random")
             self.generation=0
@@ -226,8 +224,9 @@ class gol2slide(GoLSlide):
         return 100
 
     def update(self):
-        #print(self.generation)
-        #np.save(f"data/gen{self.generation:04}.npy",self.cells)
+        if self.generation < 300:
+            print(self.generation)
+            np.save(f"data/gen{self.generation:04}.npy",self.cells)
         self.generation += 1
         #x, y = self.parent.growth_fun
         #t = time()
