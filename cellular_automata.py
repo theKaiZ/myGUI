@@ -45,17 +45,18 @@ class ca_image(Rect):
     def surface(self):
         if self._surface is not None:
             return self._surface
-        t = time()
-        surf = pygame.Surface(self.cells.shape)
-        nx, ny = self.cells.shape
-        for x in range(nx):
-            for y in range(ny):
-                surf.set_at((x, y), (0, 0, 0) if self.cells[x, y] else (255, 255, 255))
-        #self._surface = pygame.transform.smoothscale(surf, tuple(self.size))
+        #t = time()
+        def gray(im):
+            im = 255 * (im / im.max())
+            w, h = im.shape
+            ret = np.empty((w, h, 3), dtype=np.uint8)
+            ret[:, :, 2] = ret[:, :, 1] = ret[:, :, 0] = im
+            return ret
+        surf = pygame.surfarray.make_surface(gray(self.cells*255/self.cells.max()))
         if self.s >1:
             surf = pygame.transform.scale(surf, tuple(self.size))
         self._surface = surf
-        print(f"{time() - t:.2f}, {self.cells.shape}")
+        #print(f"{time() - t:.2f}, {self.cells.shape}")
         return self._surface
 
     def draw(self):

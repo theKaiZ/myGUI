@@ -114,7 +114,8 @@ class golpanel2(golpanel):
         #            print(self.cells[x,y])
         #            assert 0,""
         def gray(im):
-            im = 255 * (im / im.max())
+            im +=.3
+            im = 255 * (im / im.max())**2
             w, h = im.shape
             ret = np.empty((w, h, 3), dtype=np.uint8)
             ret[:, :, 2] = ret[:, :, 1] = ret[:, :, 0] = im
@@ -135,6 +136,7 @@ class gol2slide(GoLSlide):
 
 
     def manual_init(self):
+        self.gen_text = Textfeld(self, (50,850), (100,30), "generation")
         s = self.parent.dim
         self.differenzen = []
 
@@ -223,6 +225,7 @@ class gol2slide(GoLSlide):
         return 100
 
     def update(self):
+        self.gen_text.update()
         if self.cells.sum()==0:
             print("tot")
             return
