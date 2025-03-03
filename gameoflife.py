@@ -85,16 +85,17 @@ def next_generation(cells, newgen):
     for x in prange(xmax):
         for y in prange(ymax):
             dasum = cells[x - 1, y - 1] + cells[x - 1, y] + cells[x - 1, (y + 1) % ymax] + \
-                    cells[x, y - 1] + cells[x, (y + 1) % ymax] + \
+                    cells[x, y - 1] +                       cells[x, (y + 1) % ymax] + \
                     cells[(x + 1) % xmax, y - 1] + cells[(x + 1) % xmax, y] + cells[(x + 1) % xmax, (y + 1) % ymax]
             if cells[x, y]:
-                if dasum < 2 or dasum > 3:
-                    newgen[x, y] = 0
-                else:
+                if dasum ==2 or dasum == 3:
                     newgen[x, y] = 1
+                else:
+                    newgen[x, y] = 0
             elif dasum == 3:
                 newgen[x, y] = 1
-
+            else:
+                newgen[x,y]=0
 
 class GoLSlide(Slide):
     _buffer = None
