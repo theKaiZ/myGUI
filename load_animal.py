@@ -57,8 +57,8 @@ def rle2cells(st):
     _recur_cubify(0, A, max_lens)
     return np.asarray(A)
 
-
-with open("animals.json") as f:
+from os.path import dirname, join
+with open(join(dirname(__file__),"animals.json")) as f:
     animal_list = json.load(f)
 
 animaldict = {}

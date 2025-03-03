@@ -76,7 +76,6 @@ class gol2slide(GoLSlide):
         s = self.parent.dim
         self.differenzen = []
 
-        Button(self, (10, 10), (80, 30), "random", command=lambda: self.fill_random())
         self.cells = np.zeros((s, s), dtype=int)
         golpanel2(parent=self, pos=(10, 50), size=(600, 600))
         self.fill_random()
