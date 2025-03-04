@@ -85,3 +85,4 @@ for animal in animal_list:
 
                                       }
 
+np.save("animals.npy", animaldict)

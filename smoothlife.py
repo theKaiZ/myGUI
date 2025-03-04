@@ -5,10 +5,9 @@ import numpy as np
 from myGUI import Textfeld, Rect_with_text
 from numba import njit, prange
 from time import time
-from myGUI.load_animal import animaldict
 import random
 
-
+animaldict = np.load("animals.npy", allow_pickle=True).item()
 bell =  lambda x, m, s:np.exp(-((x-m)/s)**2 / 2)
 
 
