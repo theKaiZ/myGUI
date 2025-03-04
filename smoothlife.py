@@ -1,13 +1,12 @@
 import pygame
 from myGUI.gameoflife import GOLGUI, GoLSlide, ScrollTextfeld, golpanel, Button, Plot_object
-from functools import lru_cache
 import numpy as np
 from myGUI import Textfeld, Rect_with_text
-from numba import njit, prange
 from time import time
 import random
+from os.path import dirname, join
 
-animaldict = np.load("animals.npy", allow_pickle=True).item()
+animaldict = np.load(join(dirname(__file__),"animals.npy"), allow_pickle=True).item()
 bell =  lambda x, m, s:np.exp(-((x-m)/s)**2 / 2)
 
 
