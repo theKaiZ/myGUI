@@ -9,6 +9,21 @@ from os.path import dirname, join
 animaldict = np.load(join(dirname(__file__),"animals.npy"), allow_pickle=True).item()
 bell =  lambda x, m, s:np.exp(-((x-m)/s)**2 / 2)
 
+class Plot_generation_sum(Plot_object):
+    sums = []
+    line = None
+    def add_value(self, s):
+        self.sums.append(s)
+        if len(self.sums)==1:
+            self.line = self.ax.plot(s)[0]
+            return
+        if self.line is None:
+            return
+        self.line.set_xdata(range(len(self.sums)))
+        self.line.set_ydata(self.sums)
+        self.ax.set_xlim(0,len(self.sums)*1.1)
+        self.ax.set_ylim(0,max(self.sums)*1.1)
+        self._surface= None
 
 
 class golpanel2(golpanel):
@@ -50,7 +65,7 @@ class golpanel2(golpanel):
         surf = pygame.surfarray.make_surface(self.get_color(self.cells*255/self.cells.max()))
         surf = pygame.transform.scale(surf, tuple(self.size))
         if self._colorkey is not None:
-            surf.set_colorkey((0,0,0))
+            surf.set_colorkey(self._colorkey)
         self._surface = surf
         return self._surface
 
@@ -61,7 +76,7 @@ class gol2slide(GoLSlide):
     _sigma = 0.063
     _mu = 0.57  ### growth rate
     _R = 27  # cells per kernel radius
-    _T = 10  ###steps per time unit
+    _T = 100  ###steps per time unit
     _dim = 160
     _kernel = None
     _growth_fun = None
@@ -69,8 +84,10 @@ class gol2slide(GoLSlide):
     _b = np.array([1])
     TOT = False
     TOT_panel=None
+    _cells = None
 
     def manual_init(self):
+        self.plot_generation_sum = Plot_generation_sum(self,pos=(850,550), size=(300,300))
         self.gen_text = Textfeld(self, (50,900), (100,30), "generation")
         self.differenzen = []
         self.name_fied = Textfeld(self,(250,30), size=(300,0), key="animal_name", text_size=30)
@@ -84,7 +101,6 @@ class gol2slide(GoLSlide):
 
         self.plot_growth_fun = Plot_object(self,pos=(1150,100), size=(300,300), remove_background=True)
         self.plot_growth_fun.ax.plot(*self.growth_fun)
-
         self.parent.toggle_update = True
 
 
@@ -112,6 +128,17 @@ class gol2slide(GoLSlide):
         if self._buffer is None:
             self._buffer = np.zeros(self.cells.shape)#,dtype="float32")
         return self._buffer
+
+    @property
+    def cells(self):
+        if self._cells is None:
+            self.fill_random()
+        return self._cells
+
+    @cells.setter
+    def cells(self, value):
+        self._cells = value
+        self.plot_generation_sum.sums = []
 
     def fill_random(self):
         self.generation=0
@@ -202,7 +229,9 @@ class gol2slide(GoLSlide):
             return bell(U, self.mu, self.sigma)*2-1
         t  =time()
         buffer = np.real(np.fft.ifft2(self._fkernel*np.fft.fft2(self.cells)))
-        self.cells = np.clip(self.cells + 1/self.T * grow(buffer), 0,1)
+        self.cells[:] = np.clip(self.cells + 1/self.T * grow(buffer), 0,1)
+        self.plot_generation_sum.add_value(self.cells.sum())
+
         #print(time() - t)
 
         self.parent.toggle_update = True
